@@ -1,62 +1,7 @@
 import { DecisionNode, DecisionEdge, DecisionAnalysis, Commentary } from '@/types/decision'
 import { v4 as uuidv4 } from 'uuid'
+import { generateOptimizedTreeLayout } from '@/utils/layoutUtils'
 
-// Generate layout positions for nodes in a tree structure
-function generateTreeLayout(nodes: DecisionNode[]): DecisionNode[] {
-  const rootNode = nodes.find(n => n.data.order === 0)
-  if (!rootNode) return nodes
-
-  const nodesByOrder: { [key: number]: DecisionNode[] } = {}
-  nodes.forEach(node => {
-    if (!nodesByOrder[node.data.order]) {
-      nodesByOrder[node.data.order] = []
-    }
-    nodesByOrder[node.data.order].push(node)
-  })
-
-  // Position root node
-  rootNode.position = { x: 400, y: 50 }
-
-  // Position first order nodes
-  const firstOrder = nodesByOrder[1] || []
-  firstOrder.forEach((node, index) => {
-    const startX = 400 - ((firstOrder.length - 1) * 250) / 2
-    node.position = { x: startX + index * 250, y: 200 }
-  })
-
-  // Position second order nodes based on their parent relationships
-  const secondOrder = nodesByOrder[2] || []
-
-  // Group second order nodes by their parent (first order node)
-  const secondOrderByParent: { [parentIndex: number]: DecisionNode[] } = {}
-  secondOrder.forEach(node => {
-    // Extract parent index from node ID (format: second-parentIndex-childIndex)
-    const parts = node.id.split('-')
-    if (parts.length >= 3) {
-      const parentIndex = parseInt(parts[1])
-      if (!secondOrderByParent[parentIndex]) {
-        secondOrderByParent[parentIndex] = []
-      }
-      secondOrderByParent[parentIndex].push(node)
-    }
-  })
-
-  // Position each group of second order nodes under their parent
-  firstOrder.forEach((parentNode, parentIndex) => {
-    const children = secondOrderByParent[parentIndex] || []
-    children.forEach((child, childIndex) => {
-      const totalChildren = children.length
-      const spacing = Math.min(180, 300 / Math.max(totalChildren - 1, 1))
-      const startX = parentNode.position.x - ((totalChildren - 1) * spacing) / 2
-      child.position = {
-        x: startX + childIndex * spacing,
-        y: 380
-      }
-    })
-  })
-
-  return nodes
-}
 
 export async function generateConsequences(decision: string): Promise<DecisionAnalysis> {
   try {
@@ -149,8 +94,8 @@ export async function generateConsequences(decision: string): Promise<DecisionAn
       }
     })
 
-    // Apply tree layout
-    const layoutNodes = generateTreeLayout(nodes)
+    // Apply optimized tree layout with auto-sizing and overlap prevention
+    const layoutNodes = generateOptimizedTreeLayout(nodes)
 
     return {
       nodes: layoutNodes,
@@ -270,7 +215,7 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
       }
     })
 
-    const layoutNodes = generateTreeLayout(nodes)
+    const layoutNodes = generateOptimizedTreeLayout(nodes)
 
     return {
       nodes: layoutNodes,

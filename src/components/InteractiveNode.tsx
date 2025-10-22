@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { Handle, Position, NodeProps } from '@xyflow/react'
 import { DecisionNode } from '@/types/decision'
 import { Edit3, Plus, Trash2, Check, X } from 'lucide-react'
+import { calculateNodeDimensions } from '@/utils/layoutUtils'
 
 export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
   const [isEditing, setIsEditing] = useState(data.isEditing || false)
@@ -56,23 +57,45 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
     }
   }
 
-  const getNodeStyles = () => {
-    const baseStyles = "min-w-[200px] max-w-[300px] rounded-lg border-2 shadow-md bg-white dark:bg-gray-800"
+  const getNodeStylesAndDimensions = () => {
+    // Calculate dynamic dimensions
+    const dimensions = calculateNodeDimensions({ data, id, type: 'interactive', position: { x: 0, y: 0 } })
 
+    const baseClasses = "rounded-lg border-2 shadow-md bg-white dark:bg-gray-800"
+
+    const style = {
+      width: `${dimensions.width}px`,
+      height: `${dimensions.height}px`,
+      minWidth: `${dimensions.width}px`,
+      minHeight: `${dimensions.height}px`
+    }
+
+    let borderClasses
     switch (data.order) {
       case 0: // Root node
-        return `${baseStyles} border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20`
+        borderClasses = "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+        break
       case 1: // First order
-        return `${baseStyles} border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/20`
+        borderClasses = "border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/20"
+        break
       case 2: // Second order
-        return `${baseStyles} border-orange-500 dark:border-orange-400 bg-orange-50 dark:bg-orange-900/20`
+        borderClasses = "border-orange-500 dark:border-orange-400 bg-orange-50 dark:bg-orange-900/20"
+        break
       default:
-        return `${baseStyles} border-gray-300 dark:border-gray-600`
+        borderClasses = "border-gray-300 dark:border-gray-600"
+    }
+
+    return {
+      className: `${baseClasses} ${borderClasses}`,
+      style,
+      dimensions
     }
   }
 
+  const { className, style, dimensions } = getNodeStylesAndDimensions()
+
   return (
-    <div className={getNodeStyles()}>
+    <div className={className} style={style}>
       {/* Input handles */}
       {data.order > 0 && (
         <Handle

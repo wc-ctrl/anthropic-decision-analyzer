@@ -8,6 +8,8 @@ import { CommentaryPanel } from './CommentaryPanel'
 import { ModeSelector } from './ModeSelector'
 import { InputPanel } from './InputPanel'
 import { DarkModeToggle } from './DarkModeToggle'
+import { LayoutControls } from './LayoutControls'
+import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
 
@@ -21,6 +23,10 @@ export default function DecisionAnalyzer() {
   const [mode, setMode] = useState<AnalysisMode>({ type: 'decision', rootInput: '' })
   const [commentary, setCommentary] = useState<Commentary[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
+  const { recalculateLayout } = useAutoLayout()
+
+  // React Flow instance for programmatic control
+  const [reactFlowInstance, setReactFlowInstance] = React.useState<any>(null)
 
   // Add event listeners for node interactions
   React.useEffect(() => {
@@ -60,6 +66,16 @@ export default function DecisionAnalyzer() {
     setNodes([])
     setEdges([])
     setCommentary([])
+  }
+
+  const handleAutoLayout = () => {
+    recalculateLayout(nodes, setNodes)
+  }
+
+  const handleFitView = () => {
+    if (reactFlowInstance) {
+      reactFlowInstance.fitView({ padding: 0.1 })
+    }
   }
 
   const handleInputSubmit = async (input: string) => {
@@ -116,21 +132,22 @@ export default function DecisionAnalyzer() {
 
   const handleNodeEditInternal = async (nodeId: string, newLabel: string, newDescription?: string) => {
     // Update the node
-    setNodes((nds) =>
-      nds.map((node) =>
-        node.id === nodeId
-          ? {
-              ...node,
-              data: {
-                ...node.data,
-                label: newLabel,
-                description: newDescription,
-                isEditing: false
-              }
+    const updatedNodes = nodes.map((node) =>
+      node.id === nodeId
+        ? {
+            ...node,
+            data: {
+              ...node.data,
+              label: newLabel,
+              description: newDescription,
+              isEditing: false
             }
-          : node
-      )
+          }
+        : node
     )
+
+    // Recalculate layout to handle size changes
+    recalculateLayout(updatedNodes, setNodes)
 
     // Generate updated commentary
     try {
@@ -173,8 +190,12 @@ export default function DecisionAnalyzer() {
       animated: true
     }
 
-    setNodes(prev => [...prev, newNode])
-    setEdges(prev => [...prev, newEdge])
+    const updatedNodes = [...nodes, newNode]
+    const updatedEdges = [...edges, newEdge]
+
+    // Apply auto-layout to prevent overlaps
+    recalculateLayout(updatedNodes, setNodes)
+    setEdges(updatedEdges)
 
     // Generate commentary for the addition
     try {
@@ -196,8 +217,12 @@ export default function DecisionAnalyzer() {
     const nodeToDelete = nodes.find(n => n.id === nodeId)
     if (!nodeToDelete || nodeToDelete.data.order === 0) return // Don't delete root node
 
-    setNodes(prev => prev.filter(n => n.id !== nodeId))
-    setEdges(prev => prev.filter(e => e.source !== nodeId && e.target !== nodeId))
+    const updatedNodes = nodes.filter(n => n.id !== nodeId)
+    const updatedEdges = edges.filter(e => e.source !== nodeId && e.target !== nodeId)
+
+    // Recalculate layout after deletion
+    recalculateLayout(updatedNodes, setNodes)
+    setEdges(updatedEdges)
 
     // Generate commentary for the deletion
     try {
@@ -226,7 +251,7 @@ export default function DecisionAnalyzer() {
             </h1>
             <DarkModeToggle />
           </div>
-          <div className="flex gap-4 items-center">
+          <div className="flex gap-4 items-center flex-wrap">
             <ModeSelector
               currentMode={mode.type}
               onModeChange={handleModeChange}
@@ -236,6 +261,13 @@ export default function DecisionAnalyzer() {
               onSubmit={handleInputSubmit}
               isGenerating={isGenerating}
             />
+            {nodes.length > 0 && (
+              <LayoutControls
+                onAutoLayout={handleAutoLayout}
+                onFitView={handleFitView}
+                isGenerating={isGenerating}
+              />
+            )}
           </div>
         </div>
       </div>
@@ -251,6 +283,7 @@ export default function DecisionAnalyzer() {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             nodeTypes={nodeTypes}
+            onInit={setReactFlowInstance}
             fitView
             className="bg-gray-50 dark:bg-gray-900"
           >
