@@ -43,11 +43,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // First tier: Select optimal analytical scaffolds for this topic
+    const scaffoldResponse = await fetch(`${request.url.split('/api')[0]}/api/select-scaffolds`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic: input, analysisType: type })
+    })
+
+    let selectedScaffolds = null
+    if (scaffoldResponse.ok) {
+      selectedScaffolds = await scaffoldResponse.json()
+    }
+
     let analysis
     if (type === 'decision') {
-      analysis = await generateConsequences(input, contextualData, timestamp)
+      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds)
     } else if (type === 'forecast') {
-      analysis = await generateCausalPathways(input, contextualData, timestamp)
+      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds)
     } else {
       return NextResponse.json(
         { error: 'Invalid analysis type' },
@@ -65,7 +77,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateConsequences(decision: string, contextualData?: any, timestamp?: number) {
+async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -85,6 +97,26 @@ Google Drive Documents:
 ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- ${doc.fileName}: ${doc.excerpt}`).join('\n') : 'No Google Drive data available'}
 
 Use this context to inform your analysis, but focus primarily on strategic business implications.
+` : ''}
+
+${scaffolds && scaffolds.selectedScaffolds ? `
+ANALYTICAL FRAMEWORKS to guide your analysis:
+
+${scaffolds.selectedScaffolds.map((scaffold: any, index: number) => `
+${index + 1}. **${scaffold.name}** (${scaffold.category})
+   Rationale: ${scaffold.rationale}
+   Framework: ${scaffold.fullDescription?.substring(0, 300) || scaffold.description?.substring(0, 300)}...
+`).join('')}
+
+TOPIC ANALYSIS PROFILE:
+- Complexity: ${scaffolds.topicAnalysis?.complexity || 'medium'}
+- Information Availability: ${scaffolds.topicAnalysis?.informationAvailability || 'medium'}
+- Time Horizon: ${scaffolds.topicAnalysis?.timeHorizon || 'medium'}
+- Uncertainty Level: ${scaffolds.topicAnalysis?.uncertaintyLevel || 'medium'}
+
+RECOMMENDED APPROACH: ${scaffolds.analyticalApproach || 'Multi-factor systematic analysis'}
+
+Apply these frameworks to enhance the rigor and depth of your consequence analysis.
 ` : ''}
 
 Generate a structured analysis with:
@@ -159,7 +191,7 @@ ANALYSIS VARIATION: This is a fresh analysis run. Explore different angles and a
   }
 }
 
-async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number) {
+async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -179,6 +211,34 @@ Google Drive Documents:
 ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- ${doc.fileName}: ${doc.excerpt}`).join('\n') : 'No Google Drive data available'}
 
 Use this context to ground your probability estimates in real organizational data and strategic discussions.
+` : ''}
+
+${scaffolds && scaffolds.selectedScaffolds ? `
+ANALYTICAL FRAMEWORKS to enhance your causal analysis:
+
+${scaffolds.selectedScaffolds.map((scaffold: any, index: number) => `
+${index + 1}. **${scaffold.name}** (${scaffold.category})
+   Rationale: ${scaffold.rationale}
+   Framework: ${scaffold.fullDescription?.substring(0, 300) || scaffold.description?.substring(0, 300)}...
+`).join('')}
+
+TOPIC ANALYSIS PROFILE:
+- Complexity: ${scaffolds.topicAnalysis?.complexity || 'medium'}
+- Information Availability: ${scaffolds.topicAnalysis?.informationAvailability || 'medium'}
+- Time Horizon: ${scaffolds.topicAnalysis?.timeHorizon || 'medium'}
+- Uncertainty Level: ${scaffolds.topicAnalysis?.uncertaintyLevel || 'medium'}
+
+RECOMMENDED APPROACH: ${scaffolds.analyticalApproach || 'Multi-factor systematic analysis'}
+
+${scaffolds.isNonUSFocused ? `
+ESOTERIC SEARCH GUIDANCE: This topic requires specialized source access. Prioritize:
+- Government statistical agencies and central banks
+- Non-English and regional sources in native languages
+- Technical specifications and regulatory documents
+- Open-source intelligence repositories
+` : ''}
+
+Apply these frameworks to enhance the rigor and depth of your causal analysis.
 ` : ''}
 
 Generate a causal analysis showing what led to this outcome:

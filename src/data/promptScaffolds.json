@@ -1,0 +1,193 @@
+{
+  "searchStrategies": [
+    {
+      "id": "bayesian_network",
+      "name": "Bayesian Network Construction and Validation",
+      "category": "search",
+      "complexity": "high",
+      "applicability": ["complex_decisions", "multi_factor_analysis", "causal_reasoning"],
+      "description": "Begin by mapping out a causal Bayesian network for the question, identifying 6-10 key variables (nodes) that influence whether the outcome occurs. Arrange these nodes hierarchically: root nodes (fundamental factors with no dependencies), intermediate nodes (factors influenced by root nodes), and the final outcome node. For each node, explicitly specify its parent nodes (what directly influences it). Document the complete network structure, including all conditional dependencies. For each node, formulate specific search queries to estimate its probability: (1) For root nodes, search for base rates, historical frequencies, or current state assessments; (2) For intermediate nodes, search for conditional relationships - 'given X occurs, how often does Y occur?' Fetch and read authoritative sources for each node. Create a probability table documenting: node name, parent nodes, your probability estimate, search evidence supporting the estimate, and confidence level (low/medium/high). For nodes with multiple parents, search for information about interaction effects - does the combination of parent states affect the outcome differently than independent effects would suggest? Once all nodes have probability estimates, manually calculate the outcome probability using probability propagation: start with root nodes, calculate intermediate node probabilities as weighted combinations of parent states, and finally compute the outcome probability. For simple chains (A→B→C→Outcome), multiply conditional probabilities. For nodes with multiple parents, use the formula P(Node|Parents) weighted by P(Parents). Show your calculation steps explicitly. After computing the initial probability, conduct a sensitivity analysis: identify the 2-3 nodes your estimate is most sensitive to, search for additional information to refine those critical nodes, and recalculate. If the probability changes by >10%, document why those nodes were underspecified initially. Search for any variables you may have omitted from your network by looking for expert models or frameworks for similar questions. If you discover an important missing node, add it to your network, search for its probability, and recalculate the final outcome. Your final probability should come from the fully-specified Bayesian network with all nodes validated through targeted searches, including documentation of the network structure, all node probabilities with supporting evidence, calculation steps, and sensitivity analysis results."
+    },
+    {
+      "id": "temporal_layered",
+      "name": "Temporal Layered Search Strategy",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["trend_analysis", "momentum_tracking", "time_sensitive_decisions"],
+      "description": "Begin by searching for the most recent information (last 7 days) about the question topic using date-restricted queries. Read and synthesize these recent developments, documenting any breaking news or recent changes. Then expand your search to the last 30 days, identifying any trends or momentum. Next, search for information from 3-6 months ago to understand medium-term patterns. Finally, search for historical precedents or baseline data from 1-5 years ago. For each time layer, fetch and read 2-3 authoritative sources using web_fetch. Create a timeline showing how the situation has evolved, noting whether trajectories are accelerating, stable, or reversing. Compare the current state to historical patterns and calculate how often similar situations in the past led to positive outcomes. Weight recent information more heavily (40%) than medium-term (30%) and historical (30%) when forming your final forecast. Document any inflection points where trends changed direction and explain what caused them."
+    },
+    {
+      "id": "multi_source_triangulation",
+      "name": "Multi-Source Triangulation Protocol",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["controversial_topics", "conflicting_information", "verification_needed"],
+      "description": "For the question at hand, identify 5-6 distinct types of authoritative sources that would have relevant information: (1) official government/institutional sources, (2) major wire services (AP, Reuters, AFP), (3) domain-specific expert sources, (4) quantitative data repositories, (5) quality newspapers of record, (6) academic/research sources. Search for information from each source category separately, using targeted queries. Fetch and read at least one article from each category. Document what each source type says about the key factors affecting question resolution. Create a concordance matrix showing where sources agree and disagree. Calculate a confidence-weighted probability based on source agreement: if 5+ sources agree on a direction, assign higher confidence; if sources conflict significantly, pull toward 50% and document the nature of disagreements. Identify which source types proved most informative for this specific question and explain why. Flag any important source categories where you found little or no information, as information gaps may indicate uncertainty."
+    },
+    {
+      "id": "base_rate_refinement",
+      "name": "Base Rate Research with Reference Class Refinement",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["historical_precedents", "classification_problems", "statistical_analysis"],
+      "description": "Start by identifying the broadest reference class for this question (e.g., 'election outcomes' for an election question). Search for base rate data about positive outcomes in this broad class. Then systematically narrow the reference class by adding relevant constraints (e.g., 'elections in country X', then 'elections in country X during economic condition Y', then add more specific filters). At each level of refinement, search for data and calculate base rates. Fetch and read sources that provide quantitative historical data. Document the base rate at each level: broad class (e.g., 60% positive), then with first filter (e.g., 55%), second filter (e.g., 48%), etc. Stop refining when you can no longer find reliable data (typically 3-4 levels of refinement). Your final base rate should come from the most specific reference class where you still have n≥10 historical cases. Adjust this base rate ±10% based on specific features of the current case that don't fit neatly into your reference class categories. Search for any unusual factors in the current situation that would break the historical pattern and explain how they affect the base rate."
+    },
+    {
+      "id": "expert_consensus_mapping",
+      "name": "Expert Consensus Mapping",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["technical_decisions", "expert_knowledge_domains", "professional_analysis"],
+      "description": "Search for expert forecasts, predictions, or opinions about the question from recognized domain authorities. Use queries like '[topic] expert forecast', '[topic] expert prediction', '[topic] analysis expert'. Aim to find 5-8 distinct expert sources. For each expert, fetch and read their analysis, documenting: (1) their probability estimate if given, (2) their reasoning, (3) their track record or credentials, (4) potential biases, (5) date of their forecast. Create a distribution of expert forecasts, calculating the median, mean, and range. Weight experts by credibility: give 1.5x weight to those with strong track records, 1.0x to typical experts, 0.5x to those with apparent conflicts of interest. Search for any aggregated expert forecasts (like prediction markets, superforecaster consensus, or expert surveys). If you find large disagreement among experts (range >30%), investigate why they disagree by searching for the specific factors causing divergence. Your probability should be the credibility-weighted average of expert forecasts, adjusted ±5% based on whether you have information they likely don't have access to."
+    },
+    {
+      "id": "contrarian_evidence_hunting",
+      "name": "Contrarian Evidence Hunting",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["bias_mitigation", "controversial_analysis", "assumption_testing"],
+      "description": "After forming an initial probability estimate, deliberately search for evidence that would contradict or challenge your forecast. If your initial estimate favors YES, search specifically for terms like '[topic] fails', '[topic] unlikely', '[topic] obstacles', '[topic] criticism', '[topic] risks'. If favoring NO, search for '[topic] succeeds', '[topic] support', '[topic] momentum', '[topic] advantages'. Fetch and carefully read 3-5 sources that present the strongest case against your initial view. Document the most compelling contrarian arguments. Search for historical cases where the consensus or initial indicators pointed one direction but the outcome went the opposite way. Evaluate whether the contrarian evidence represents: (1) legitimate factors you underweighted, (2) minority views that are unlikely to materialize, or (3) outdated information superseded by recent developments. Adjust your probability based on the strength of contrarian evidence: strong contrarian evidence with good reasoning should move your estimate 15-25% toward the opposing outcome; weak contrarian arguments might only warrant 5% adjustment."
+    },
+    {
+      "id": "primary_source_verification",
+      "name": "Official Primary Source Verification",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["government_decisions", "regulatory_analysis", "official_data"],
+      "description": "Identify what official or primary sources would have authoritative information about question resolution (e.g., government agencies, official statistics bureaus, regulatory bodies, election commissions, company filings, etc.). Search specifically for these official sources using site-specific searches or official domain names. Fetch and read the official documents, reports, or data releases directly rather than relying on media interpretation. Document the official data points, metrics, timelines, or statements relevant to the question. Cross-reference official sources against news reporting to identify any discrepancies or misinterpretations. If official data is incomplete or outdated, search for when the next official update is scheduled. Calculate how much your forecast depends on assumptions versus verified official information. For any key claims in your reasoning, verify them against official sources and flag claims that cannot be officially verified. Adjust your confidence downward by 10-15% if you're relying heavily on unofficial or secondary sources rather than primary documentation."
+    },
+    {
+      "id": "quantitative_aggregation",
+      "name": "Quantitative Data Aggregation",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["data_driven_analysis", "statistical_reasoning", "metric_tracking"],
+      "description": "Search for all available quantitative data relevant to the question: polls, statistics, metrics, indices, counts, rates, etc. Use queries targeting data-rich sources: '[topic] data', '[topic] statistics', '[topic] poll', '[topic] numbers', '[topic] metrics'. Fetch sources that provide actual numbers rather than just qualitative analysis. Create a data summary documenting: (1) what metrics exist, (2) their current values, (3) historical trends, (4) how they correlate with the outcome of interest. For each metric, assess its predictive validity - has this metric historically been a good leading indicator for similar outcomes? Search for information about measurement reliability and potential biases in data collection. If multiple polls or surveys exist, calculate the aggregate using proper averaging techniques (accounting for sample sizes, dates, and pollster quality). Convert quantitative indicators into probability estimates using calibrated relationships (e.g., if polls at X level historically led to positive outcomes Y% of the time). Your final forecast should heavily weight hard quantitative data over qualitative speculation, but apply appropriate uncertainty bands to account for measurement error and model uncertainty."
+    },
+    {
+      "id": "timeline_milestone_tracking",
+      "name": "Timeline Construction and Milestone Tracking",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["project_tracking", "sequential_events", "deadline_analysis"],
+      "description": "Search for information to build a comprehensive timeline of events related to the question. Start by searching for the earliest relevant events, then progressively search for later developments. Fetch and read sources covering key moments in the timeline. Document major events, decisions, announcements, or changes in chronological order. For each milestone, note whether it moved the situation toward or away from positive outcome. Search for any scheduled future events or decision points between now and resolution date. Identify which upcoming milestones are most critical for question resolution. Search for historical analogues where similar timelines played out and document how often they led to positive outcomes. Calculate the probability by: (1) identifying how many critical milestones remain, (2) estimating the probability of clearing each milestone based on current trajectory, (3) multiplying these conditional probabilities. Adjust based on whether recent milestones were passed easily or barely, as this indicates momentum. Search for any potential timeline disruptors or wild cards that could accelerate or derail the expected sequence of events."
+    },
+    {
+      "id": "stakeholder_position_analysis",
+      "name": "Stakeholder Position Analysis",
+      "category": "search",
+      "complexity": "medium",
+      "applicability": ["political_analysis", "organizational_decisions", "multi_party_scenarios"],
+      "description": "Identify the 5-7 key stakeholders, actors, or decision-makers whose actions will determine question resolution. For each stakeholder, search for information about: (1) their stated positions or intentions, (2) their incentives and motivations, (3) their track record on similar issues, (4) their power/influence level, (5) recent actions or statements. Fetch and read recent interviews, press releases, or statements from each stakeholder. Create a stakeholder matrix documenting whether each actor favors, opposes, or is neutral toward the positive outcome, weighted by their influence level. Search for information about relationships and alliances between stakeholders - are there coalitions forming? Calculate a coalition strength score for pro-outcome versus anti-outcome forces. Search for any changes in stakeholder positions over time - are views hardening or softening? Your probability should reflect the balance of stakeholder power: if stakeholders controlling 70% of influence favor the outcome, assign a high probability, adjusted for uncertainty in stakeholder follow-through. Search for historical precedents where similar stakeholder configurations led to what outcomes."
+    }
+  ],
+  "reasoningStrategies": [
+    {
+      "id": "factor_tree_decomposition",
+      "name": "Factor Tree Decomposition",
+      "category": "reasoning",
+      "complexity": "medium",
+      "applicability": ["complex_decisions", "multi_factor_analysis", "systematic_breakdown"],
+      "description": "Construct a hierarchical tree of factors affecting the outcome, starting with 3-5 primary drivers at the top level, each branching into 2-4 sub-factors at the second level. For each leaf node, assign both an importance weight (0.1-1.0) representing how much this factor matters and a favorability score (-5 to +5) representing whether it pushes toward positive or negative outcome. Calculate weighted scores by multiplying importance × favorability for each factor, then sum across all branches. Document your reasoning for each weight and score explicitly. Convert the total weighted score to probability using normalization: probability = 50% + (total score / maximum possible score) × 45%. After calculation, review each branch of the tree to identify potential interactions between factors that might require adjustment, adding or subtracting up to 10% for significant interactions. Finally, visualize the tree structure mentally and verify that no major factors have been omitted, making a final adjustment of ±5% if the tree feels incomplete."
+    },
+    {
+      "id": "temporal_trajectory_analysis",
+      "name": "Temporal Trajectory Analysis",
+      "category": "reasoning",
+      "complexity": "medium",
+      "applicability": ["time_sensitive_outcomes", "phased_implementation", "sequential_reasoning"],
+      "description": "Divide the time period between now and the resolution date into 4-6 distinct phases or milestone periods. For each phase, identify what would need to happen for the positive outcome to remain on track, assigning a conditional probability that this phase will be successfully navigated given success in all previous phases. Document the key events, decisions, or developments expected in each phase. Multiply these conditional probabilities together to get a baseline estimate, then apply a temporal discount factor that accounts for uncertainty increasing with time horizon: multiply by 1.0 for near-term resolutions (within 3 months), 0.9 for medium-term (3-12 months), and 0.8 for long-term (beyond 12 months). Next, identify potential accelerating or decelerating trends that could change the trajectory mid-course, adjusting by ±10% if strong directional momentum exists. Consider whether early phases serve as strong indicators for later phases (positive correlation) or whether success in early phases might paradoxically make later phases harder (negative correlation), applying a correlation adjustment of ±5%. The final probability reflects the likelihood of successfully progressing through all temporal phases with appropriate adjustments for time horizon and trajectory dynamics."
+    },
+    {
+      "id": "multi_scenario_planning",
+      "name": "Multi-Scenario Planning",
+      "category": "reasoning",
+      "complexity": "high",
+      "applicability": ["scenario_analysis", "uncertainty_management", "strategic_planning"],
+      "description": "Generate 5-7 distinct plausible scenarios for how events could unfold, ranging from highly favorable to highly unfavorable for the positive outcome. For each scenario, write a brief narrative (3-4 sentences) describing the key developments and assign it both a probability of occurrence (ensuring all scenario probabilities sum to 100%) and a probability that the positive outcome occurs conditional on that scenario (0-100%). For each scenario, explicitly document what differentiates it from other scenarios and what early warning signs would indicate which scenario is materializing. Calculate the overall probability using the law of total probability: sum of (scenario probability × conditional outcome probability) across all scenarios. After calculation, test the robustness of your estimate by considering what happens if you redistribute 10% of probability mass from the most likely scenario to less likely scenarios, checking if this significantly changes your answer. If the outcome is highly sensitive to scenario selection, pull the final estimate toward 50% by 10%. If they converge, take their average. Document which scenarios contribute most to the overall probability and whether the estimate depends heavily on a single scenario or is distributed across multiple paths."
+    },
+    {
+      "id": "expert_perspective_simulation",
+      "name": "Expert Perspective Simulation",
+      "category": "reasoning",
+      "complexity": "medium",
+      "applicability": ["multi_disciplinary_analysis", "expert_knowledge", "perspective_taking"],
+      "description": "Simulate the reasoning of 4-6 different types of domain experts who would approach this question from distinct analytical frameworks (e.g., political analyst, economist, historian, data scientist, domain specialist, skeptical contrarian). For each expert persona, write out their perspective in 3-5 sentences, focusing on what factors they would emphasize and what probability they would likely assign based on their domain knowledge and typical biases. Assign each simulated expert a credibility weight (0.5-1.5) based on how relevant their domain expertise is to this specific question. Calculate a weighted average of the expert probabilities, but before finalizing, identify any systematic biases that might affect all experts in the same direction (e.g., availability bias, recent event sensitivity) and apply a correction of ±5-15%. Additionally, assess whether there are important considerations that none of your simulated experts would naturally consider, adding a catch-all 'unknown unknowns' factor that pulls the estimate 5% closer to 50%. Document which biases you found most concerning in your initial reasoning."
+    },
+    {
+      "id": "premortem_analysis",
+      "name": "Premortem Analysis",
+      "category": "reasoning",
+      "complexity": "low",
+      "applicability": ["failure_analysis", "success_factors", "narrative_reasoning"],
+      "description": "Assume the question will resolve to YES with 100% certainty and project yourself to the resolution date. Write a detailed premortem (5-7 sentences) explaining how and why the positive outcome came to pass, identifying the 3-5 critical factors that made it happen. Rate the plausibility of this success story on a 0-10 scale. Then assume the question will resolve to NO with 100% certainty and write an equally detailed premortem explaining the failure, identifying the 3-5 critical factors that prevented success. Rate the plausibility of this failure story. Convert these plausibility ratings to probabilities using: P(YES) = (success plausibility) / (success plausibility + failure plausibility) × 100%. If both stories seem equally plausible (ratings within 1 point), this indicates high uncertainty - pull the probability toward 50% by multiplying the distance from 50% by 0.7. If one story required multiple unlikely coincidences while the other followed a natural path, adjust ±10% to favor the more natural scenario. Review both premortems to identify hidden assumptions or dependencies you initially overlooked, making a final adjustment of ±5% based on these discoveries."
+    }
+  ],
+  "nudgingStrategies": [
+    {
+      "id": "base_rate_consideration",
+      "name": "Consider the base rate",
+      "category": "nudging",
+      "complexity": "low",
+      "applicability": ["general_analysis", "quick_assessment", "baseline_thinking"],
+      "description": "What percentage of similar events typically occur in comparable contexts? Start with this baseline and then adjust based on the specific details of this question."
+    },
+    {
+      "id": "analyze_dependencies",
+      "name": "Analyze key dependencies",
+      "category": "nudging",
+      "complexity": "low",
+      "applicability": ["causal_analysis", "conditional_reasoning", "dependency_mapping"],
+      "description": "What specific conditions or events would need to occur for the prediction to resolve YES? Estimate the probability of each condition and combine them."
+    },
+    {
+      "id": "information_asymmetry",
+      "name": "Evaluate information asymmetry",
+      "category": "nudging",
+      "complexity": "low",
+      "applicability": ["uncertainty_assessment", "information_gaps", "evidence_evaluation"],
+      "description": "What information might be missing or unknown? How would additional evidence change your estimate? Consider both bullish and bearish surprises."
+    },
+    {
+      "id": "temporal_reasoning",
+      "name": "Apply temporal reasoning",
+      "category": "nudging",
+      "complexity": "low",
+      "applicability": ["time_sensitive_analysis", "milestone_tracking", "timeline_assessment"],
+      "description": "How does the timeline matter? Are we early or late in the unfolding of events? What are the critical decision points or milestones?"
+    },
+    {
+      "id": "historical_comparison",
+      "name": "Compare to similar cases",
+      "category": "nudging",
+      "complexity": "low",
+      "applicability": ["precedent_analysis", "pattern_recognition", "historical_reasoning"],
+      "description": "Can you identify similar historical events or precedents? How did they resolve? What are the key similarities and differences with this question?"
+    }
+  ],
+  "esotericSearchStrategy": {
+    "description": "Enhanced search methodology for non-US topics requiring specialized source access",
+    "tierStructure": [
+      {
+        "tier": 1,
+        "name": "Primary Quantitative Sources",
+        "sources": ["Government statistical agencies", "Central banks and treasury departments", "International organizations raw data", "Open-source technical databases", "Survey organizations with methodology"]
+      },
+      {
+        "tier": 2,
+        "name": "Specialized Technical Sources",
+        "sources": ["Industry standards bodies", "Technical specifications and blueprints", "Regulatory compliance documents", "Scientific instrument specs", "Infrastructure documentation"]
+      },
+      {
+        "tier": 3,
+        "name": "Non-English and Regional Sources",
+        "sources": ["Native language sources", "Local government statistics", "Regional news in original language", "Academic publications from relevant regions"]
+      },
+      {
+        "tier": 4,
+        "name": "Open-Source Intelligence",
+        "sources": ["Think tank analysis with data", "NGO monitoring reports", "OSINT repositories", "Academic research with datasets"]
+      }
+    ]
+  }
+}
