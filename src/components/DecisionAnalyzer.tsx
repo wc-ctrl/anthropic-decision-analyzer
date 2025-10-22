@@ -17,6 +17,8 @@ import { DevilsAdvocateModal } from './DevilsAdvocateModal'
 import { ScenarioButton } from './ScenarioButton'
 import { ScenarioDisplayPanel } from './ScenarioDisplayPanel'
 import { ShareAnalysisButton } from './ShareAnalysisButton'
+import { TopicSuggestionButton } from './TopicSuggestionButton'
+import { TopicSuggestionModal } from './TopicSuggestionModal'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { useScreenshot } from '@/hooks/useScreenshot'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
@@ -46,6 +48,11 @@ export default function DecisionAnalyzer() {
     loading: boolean
   }>({
     data: null,
+    loading: false
+  })
+  const [topicSuggestionModal, setTopicSuggestionModal] = useState({
+    isOpen: false,
+    data: null as any,
     loading: false
   })
   const { recalculateLayout } = useAutoLayout()
@@ -474,6 +481,73 @@ export default function DecisionAnalyzer() {
     }
   }
 
+  const handleTopicSuggestions = async () => {
+    // Open modal with loading state
+    setTopicSuggestionModal({
+      isOpen: true,
+      data: null,
+      loading: true
+    })
+
+    try {
+      // Generate topic suggestions
+      const response = await fetch('/api/suggest-topics', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          useSlack: hasSlackData,
+          useGDrive: hasGDriveData
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate topic suggestions')
+      }
+
+      const suggestions = await response.json()
+
+      setTopicSuggestionModal({
+        isOpen: true,
+        data: suggestions,
+        loading: false
+      })
+
+    } catch (error) {
+      console.error('Error generating topic suggestions:', error)
+      setTopicSuggestionModal({
+        isOpen: true,
+        data: null,
+        loading: false
+      })
+    }
+  }
+
+  const handleSelectTopic = (type: 'decision' | 'forecast' | 'scenario', text: string) => {
+    // Switch to the appropriate mode and set the input
+    setMode({ type, rootInput: text })
+    setNodes([])
+    setEdges([])
+    setCommentary([])
+    setScenarioData({ data: null, loading: false })
+
+    // Close the suggestion modal
+    setTopicSuggestionModal({
+      isOpen: false,
+      data: null,
+      loading: false
+    })
+  }
+
+  const handleCloseTopicSuggestions = () => {
+    setTopicSuggestionModal({
+      isOpen: false,
+      data: null,
+      loading: false
+    })
+  }
+
   const handleInputSubmit = async (input: string) => {
     setIsGenerating(true)
     setMode(prev => ({ ...prev, rootInput: input }))
@@ -659,6 +733,12 @@ export default function DecisionAnalyzer() {
               Claudeswitz
             </h1>
             <div className="flex items-center gap-3">
+              <TopicSuggestionButton
+                onOpenSuggestions={handleTopicSuggestions}
+                isGenerating={topicSuggestionModal.loading}
+                slackConnected={hasSlackData}
+                disabled={isGenerating || isGeneratingDeepLayer || isSharing}
+              />
               <McpIntegrationPanel onDataSourcesUpdated={handleDataSourcesUpdated} />
               <DarkModeToggle />
             </div>
@@ -766,6 +846,15 @@ export default function DecisionAnalyzer() {
         data={devilsAdvocateModal.data}
         analysisType={mode.type}
         loading={devilsAdvocateModal.loading}
+      />
+
+      {/* Topic Suggestion Modal */}
+      <TopicSuggestionModal
+        isOpen={topicSuggestionModal.isOpen}
+        onClose={handleCloseTopicSuggestions}
+        data={topicSuggestionModal.data}
+        loading={topicSuggestionModal.loading}
+        onSelectTopic={handleSelectTopic}
       />
 
     </div>
