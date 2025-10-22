@@ -18,6 +18,10 @@ export interface DecisionEdge {
   target: string
   type: 'smoothstep'
   animated?: boolean
+  style?: {
+    stroke?: string
+    strokeWidth?: number
+  }
 }
 
 export interface AnalysisMode {

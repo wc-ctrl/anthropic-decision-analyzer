@@ -60,18 +60,47 @@ body {
   border: 2px solid rgb(75 85 99);
 }
 
-/* Edge styles for better visibility in dark mode */
+/* Edge styles for better visibility and reduced overlap */
+.react-flow__edge-path {
+  stroke: rgb(99 102 241);
+  stroke-width: 2px;
+}
+
 .dark .react-flow__edge-path {
   stroke: rgb(156 163 175);
+  stroke-width: 2px;
 }
 
-.dark .react-flow__edge.animated path {
-  stroke-dasharray: 5;
-  animation: dashdraw 0.5s linear infinite;
-}
-
-.dark .react-flow__edge.animated path {
-  stroke-dasharray: 5;
-  animation: dashdraw 0.5s linear infinite;
+.react-flow__edge.animated path {
+  stroke-dasharray: 8 4;
+  animation: dashdraw 1s linear infinite;
   stroke: rgb(59 130 246);
+  stroke-width: 2.5px;
+}
+
+.dark .react-flow__edge.animated path {
+  stroke-dasharray: 8 4;
+  animation: dashdraw 1s linear infinite;
+  stroke: rgb(96 165 250);
+  stroke-width: 2.5px;
+}
+
+/* Improved edge markers */
+.react-flow__arrowhead {
+  fill: rgb(59 130 246);
+}
+
+.dark .react-flow__arrowhead {
+  fill: rgb(96 165 250);
+}
+
+/* Edge hover effects */
+.react-flow__edge:hover path {
+  stroke-width: 3px;
+  stroke: rgb(37 99 235);
+}
+
+.dark .react-flow__edge:hover path {
+  stroke-width: 3px;
+  stroke: rgb(147 197 253);
 }

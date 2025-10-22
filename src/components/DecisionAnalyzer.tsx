@@ -151,6 +151,13 @@ export default function DecisionAnalyzer() {
       recalculateLayout(allNodes, setNodes, mode.type === 'forecast')
       setEdges(allEdges)
 
+      // Auto-fit the view after adding new layer
+      setTimeout(() => {
+        if (reactFlowInstance) {
+          reactFlowInstance.fitView({ padding: 0.2, duration: 600 })
+        }
+      }, 300)
+
       // Generate commentary for the new layer
       const currentAnalysis: DecisionAnalysis = {
         nodes: allNodes,
@@ -208,6 +215,13 @@ export default function DecisionAnalyzer() {
       // Update nodes and edges with generated analysis
       setNodes(analysis.nodes)
       setEdges(analysis.edges)
+
+      // Auto-fit the view after analysis is complete
+      setTimeout(() => {
+        if (reactFlowInstance) {
+          reactFlowInstance.fitView({ padding: 0.2, duration: 800 })
+        }
+      }, 500)
 
       // Generate initial commentary
       const initialCommentary = await generateCommentary(analysis, 'initialAnalysis', [])

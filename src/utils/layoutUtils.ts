@@ -112,27 +112,59 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[], isReversed: b
     })
   }
 
-  // Position nodes for orders 2 and beyond with dynamic distribution
+  // Position nodes for orders 2 and beyond with smart organization
   for (let currentOrder = 2; currentOrder <= maxOrder; currentOrder++) {
     const currentOrderNodes = nodesByOrder[currentOrder] || []
     if (currentOrderNodes.length === 0) continue
 
-    // Calculate total width needed for current order nodes
-    const totalCurrentOrderWidth = currentOrderNodes.reduce((sum, node, index) => {
-      return sum + node.dimensions.width + (index > 0 ? nodeGap : 0)
-    }, 0)
+    // For forecast mode, organize nodes to reduce edge overlap
+    if (isReversed && currentOrder === 2) {
+      // Group second order nodes by their parent first order nodes
+      const parentOrder = nodesByOrder[currentOrder - 1] || []
+      const nodesByParent: { [parentIndex: number]: LayoutNode[] } = {}
 
-    // Start from the leftmost position
-    let currentX = -totalCurrentOrderWidth / 2
+      currentOrderNodes.forEach(node => {
+        const parts = node.id.split('-')
+        if (parts.length >= 3) {
+          const parentIndex = parseInt(parts[1])
+          if (!nodesByParent[parentIndex]) {
+            nodesByParent[parentIndex] = []
+          }
+          nodesByParent[parentIndex].push(node)
+        }
+      })
 
-    // Position all current order nodes in a single row with proper spacing
-    currentOrderNodes.forEach((node, index) => {
-      node.position = {
-        x: currentX + node.dimensions.width / 2,
-        y: isReversed ? levelGap * (maxOrder - currentOrder) : levelGap * currentOrder
-      }
-      currentX += node.dimensions.width + nodeGap
-    })
+      // Position each group under their respective parent
+      parentOrder.forEach((parentNode, parentIndex) => {
+        const children = nodesByParent[parentIndex] || []
+        if (children.length === 0) return
+
+        const childSpacing = 100 // Horizontal spacing between children of same parent
+        const startX = parentNode.position.x - ((children.length - 1) * childSpacing) / 2
+
+        children.forEach((child, childIndex) => {
+          child.position = {
+            x: startX + childIndex * childSpacing,
+            y: isReversed ? levelGap * (maxOrder - currentOrder) : levelGap * currentOrder
+          }
+        })
+      })
+    } else {
+      // For other orders or decision mode, use standard distribution
+      const totalCurrentOrderWidth = currentOrderNodes.reduce((sum, node, index) => {
+        return sum + node.dimensions.width + (index > 0 ? nodeGap : 0)
+      }, 0)
+
+      let currentX = -totalCurrentOrderWidth / 2
+
+      currentOrderNodes.forEach((node, index) => {
+        node.position = {
+          x: currentX + node.dimensions.width / 2,
+          y: isReversed ? levelGap * (maxOrder - currentOrder) : levelGap * currentOrder
+        }
+        currentX += node.dimensions.width + nodeGap
+      })
+    }
   }
 
   // Center the entire tree

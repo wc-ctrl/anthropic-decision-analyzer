@@ -186,7 +186,8 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
         source: nodeId,
         target: 'root',
         type: 'smoothstep',
-        animated: true
+        animated: true,
+        style: { stroke: '#10b981', strokeWidth: 2 }
       })
 
       if (analysis.secondOrder[index]) {
@@ -211,7 +212,8 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
             source: secondNodeId,
             target: nodeId,
             type: 'smoothstep',
-            animated: true
+            animated: true,
+            style: { stroke: '#f59e0b', strokeWidth: 1.5 }
           })
         })
       }
