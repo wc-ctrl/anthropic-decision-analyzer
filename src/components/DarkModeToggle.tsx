@@ -7,6 +7,9 @@ export function DarkModeToggle() {
   const [isDark, setIsDark] = useState(false)
 
   useEffect(() => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return
+
     // Check if dark mode is preferred or previously set
     const isDarkMode = localStorage.getItem('darkMode') === 'true' ||
                       (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -16,6 +19,9 @@ export function DarkModeToggle() {
   }, [])
 
   const updateDarkMode = (isDarkMode: boolean) => {
+    // Only run in browser environment
+    if (typeof window === 'undefined') return
+
     if (isDarkMode) {
       document.documentElement.classList.add('dark')
     } else {
