@@ -108,10 +108,30 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode
     })
   }
 
-  // Position second order nodes
+  // Position second order nodes with improved distribution
   const secondOrder = nodesByOrder[2] || []
   if (secondOrder.length > 0) {
-    // Group second order nodes by their parent
+    // Calculate total width needed for all second order nodes
+    const totalSecondOrderWidth = secondOrder.reduce((sum, node, index) => {
+      return sum + node.dimensions.width + (index > 0 ? nodeGap : 0)
+    }, 0)
+
+    // Start from the leftmost position
+    let currentX = -totalSecondOrderWidth / 2
+
+    // Position all second order nodes in a single row with proper spacing
+    secondOrder.forEach((node, index) => {
+      node.position = {
+        x: currentX + node.dimensions.width / 2,
+        y: levelGap * 2
+      }
+      currentX += node.dimensions.width + nodeGap
+    })
+
+    // Optional: If you want to keep parent-child visual relationships,
+    // but prevent overlap, we can adjust positions while maintaining connections
+
+    // Group by parent for connection purposes but ensure no overlap
     const secondOrderByParent: { [parentIndex: number]: LayoutNode[] } = {}
     secondOrder.forEach(node => {
       const parts = node.id.split('-')
@@ -124,27 +144,62 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode
       }
     })
 
-    // Position each group under their parent
-    firstOrder.forEach((parentNode, parentIndex) => {
-      const children = secondOrderByParent[parentIndex] || []
-      if (children.length === 0) return
+    // Try to move nodes closer to their parents while avoiding overlap
+    const finalPositions: LayoutNode[] = [...secondOrder]
+    let improved = true
+    let iterations = 0
+    const maxIterations = 5
 
-      // Calculate total width needed for this parent's children
-      const totalChildrenWidth = children.reduce((sum, child, index) => {
-        return sum + child.dimensions.width + (index > 0 ? nodeGap : 0)
-      }, 0)
+    while (improved && iterations < maxIterations) {
+      improved = false
+      iterations++
 
-      // Position children centered under parent
-      let childX = parentNode.position.x - totalChildrenWidth / 2
+      firstOrder.forEach((parentNode, parentIndex) => {
+        const children = secondOrderByParent[parentIndex] || []
 
-      children.forEach((child, childIndex) => {
-        child.position = {
-          x: childX + child.dimensions.width / 2,
-          y: levelGap * 2
-        }
-        childX += child.dimensions.width + nodeGap
+        children.forEach(child => {
+          // Try to move child closer to parent
+          const idealX = parentNode.position.x
+          const currentChild = finalPositions.find(n => n.id === child.id)
+          if (!currentChild) return
+
+          // Find the closest valid position to ideal that doesn't cause overlap
+          let bestX = currentChild.position.x
+          let bestDistance = Math.abs(currentChild.position.x - idealX)
+
+          // Try positions in steps toward the parent
+          const step = 20
+          const direction = idealX > currentChild.position.x ? 1 : -1
+
+          for (let testX = currentChild.position.x;
+               Math.abs(testX - currentChild.position.x) <= 200;
+               testX += step * direction) {
+
+            const testNode = { ...currentChild, position: { x: testX, y: currentChild.position.y } }
+            let hasCollision = false
+
+            // Check collision with all other second-order nodes
+            for (const other of finalPositions) {
+              if (other.id !== currentChild.id && nodesOverlap(testNode, other)) {
+                hasCollision = true
+                break
+              }
+            }
+
+            if (!hasCollision) {
+              const distance = Math.abs(testX - idealX)
+              if (distance < bestDistance) {
+                bestX = testX
+                bestDistance = distance
+                improved = true
+              }
+            }
+          }
+
+          currentChild.position.x = bestX
+        })
       })
-    })
+    }
   }
 
   // Center the entire tree
