@@ -75,7 +75,7 @@ export default function DecisionAnalyzer() {
   }
 
   const handleAutoLayout = () => {
-    recalculateLayout(nodes, setNodes)
+    recalculateLayout(nodes, setNodes, mode.type === 'forecast')
   }
 
   const handleFitView = () => {
@@ -148,7 +148,7 @@ export default function DecisionAnalyzer() {
       const allNodes = [...nodes, ...newNodes]
       const allEdges = [...edges, ...newEdges]
 
-      recalculateLayout(allNodes, setNodes)
+      recalculateLayout(allNodes, setNodes, mode.type === 'forecast')
       setEdges(allEdges)
 
       // Generate commentary for the new layer
@@ -246,7 +246,7 @@ export default function DecisionAnalyzer() {
     )
 
     // Recalculate layout to handle size changes
-    recalculateLayout(updatedNodes, setNodes)
+    recalculateLayout(updatedNodes, setNodes, mode.type === 'forecast')
 
     // Generate updated commentary
     try {
@@ -293,7 +293,7 @@ export default function DecisionAnalyzer() {
     const updatedEdges = [...edges, newEdge]
 
     // Apply auto-layout to prevent overlaps
-    recalculateLayout(updatedNodes, setNodes)
+    recalculateLayout(updatedNodes, setNodes, mode.type === 'forecast')
     setEdges(updatedEdges)
 
     // Generate commentary for the addition
@@ -320,7 +320,7 @@ export default function DecisionAnalyzer() {
     const updatedEdges = edges.filter(e => e.source !== nodeId && e.target !== nodeId)
 
     // Recalculate layout after deletion
-    recalculateLayout(updatedNodes, setNodes)
+    recalculateLayout(updatedNodes, setNodes, mode.type === 'forecast')
     setEdges(updatedEdges)
 
     // Generate commentary for the deletion

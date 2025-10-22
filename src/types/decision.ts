@@ -6,6 +6,7 @@ export interface DecisionNode {
     description?: string
     order: number // 0 = root, 1 = first order, 2 = second order
     nodeType: 'decision' | 'consequence' | 'forecast' // Semantic type for business logic
+    probability?: number // For forecast mode: probability this cause contributed (0-100)
     isEditing?: boolean
   }
   position: { x: number; y: number }

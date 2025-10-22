@@ -126,52 +126,60 @@ async function generateCausalPathways(forecast: string) {
     max_tokens: 2000,
     messages: [{
       role: 'user',
-      content: `You are an expert strategic analyst helping executives understand causal pathways.
+      content: `You are an expert superforecaster trained in the methodology of Philip Tetlock and the Good Judgment Project. You understand base rates, reference class forecasting, and probabilistic reasoning.
 
-Given this forecast/prediction: "${forecast}"
+Given this outcome/forecast: "${forecast}"
 
-Generate a structured analysis of plausible causal pathways showing:
-1. EXACTLY 5 first-order causes (direct drivers that could lead to this outcome)
-2. For EACH of the 5 first-order causes, EXACTLY 2 underlying causes (root causes or enablers)
+Generate a causal analysis showing what led to this outcome:
+1. EXACTLY 5 first-order causes (direct drivers that led to this outcome)
+2. For EACH first-order cause, EXACTLY 2 second-order causes (underlying factors)
 
 For each cause, provide:
 - A concise title (max 8 words)
 - A brief description (1-2 sentences)
+- A probability estimate (0-100) representing how likely this factor was to contribute significantly to the outcome
 
-IMPORTANT: Return ONLY valid JSON with this EXACT structure - no other text:
+Use superforecasting principles:
+- Consider base rates and historical precedents
+- Account for regression to the mean
+- Avoid overconfidence bias
+- Use reference class forecasting
+- Consider both inside and outside view perspectives
+
+IMPORTANT: Return ONLY valid JSON with this EXACT structure:
 {
   "firstOrder": [
-    {"title": "First cause title", "description": "Brief description"},
-    {"title": "Second cause title", "description": "Brief description"},
-    {"title": "Third cause title", "description": "Brief description"},
-    {"title": "Fourth cause title", "description": "Brief description"},
-    {"title": "Fifth cause title", "description": "Brief description"}
+    {"title": "Primary causal factor", "description": "Description", "probability": 85},
+    {"title": "Secondary causal factor", "description": "Description", "probability": 72},
+    {"title": "Third causal factor", "description": "Description", "probability": 68},
+    {"title": "Fourth causal factor", "description": "Description", "probability": 60},
+    {"title": "Fifth causal factor", "description": "Description", "probability": 55}
   ],
   "secondOrder": {
     "0": [
-      {"title": "First underlying cause", "description": "Brief description"},
-      {"title": "Second underlying cause", "description": "Brief description"}
+      {"title": "Underlying factor 1", "description": "Description", "probability": 78},
+      {"title": "Underlying factor 2", "description": "Description", "probability": 65}
     ],
     "1": [
-      {"title": "First underlying cause", "description": "Brief description"},
-      {"title": "Second underlying cause", "description": "Brief description"}
+      {"title": "Underlying factor 1", "description": "Description", "probability": 70},
+      {"title": "Underlying factor 2", "description": "Description", "probability": 62}
     ],
     "2": [
-      {"title": "First underlying cause", "description": "Brief description"},
-      {"title": "Second underlying cause", "description": "Brief description"}
+      {"title": "Underlying factor 1", "description": "Description", "probability": 66},
+      {"title": "Underlying factor 2", "description": "Description", "probability": 58}
     ],
     "3": [
-      {"title": "First underlying cause", "description": "Brief description"},
-      {"title": "Second underlying cause", "description": "Brief description"}
+      {"title": "Underlying factor 1", "description": "Description", "probability": 64},
+      {"title": "Underlying factor 2", "description": "Description", "probability": 54}
     ],
     "4": [
-      {"title": "First underlying cause", "description": "Brief description"},
-      {"title": "Second underlying cause", "description": "Brief description"}
+      {"title": "Underlying factor 1", "description": "Description", "probability": 61},
+      {"title": "Underlying factor 2", "description": "Description", "probability": 52}
     ]
   }
 }
 
-Focus on realistic, interconnected causes that business leaders should monitor. Consider technological, economic, social, and regulatory drivers.`
+Focus on realistic, evidence-based causal factors. Consider market dynamics, technological trends, regulatory changes, and competitive forces.`
     }]
   })
 

@@ -31,7 +31,7 @@ export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
         }`}
       >
         <TrendingUp size={16} />
-        Forecast Analysis
+        Causal Analysis
       </button>
     </div>
   )

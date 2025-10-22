@@ -205,6 +205,11 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
           <div>
             <div className="font-medium text-sm text-gray-900 dark:text-white leading-tight mb-1">
               {data.label}
+              {data.probability && data.nodeType === 'forecast' && (
+                <span className="ml-2 text-xs font-bold bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded">
+                  {data.probability}%
+                </span>
+              )}
             </div>
             {data.description && (
               <div className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">

@@ -95,7 +95,7 @@ export async function generateConsequences(decision: string): Promise<DecisionAn
     })
 
     // Apply optimized tree layout with auto-sizing and overlap prevention
-    const layoutNodes = generateOptimizedTreeLayout(nodes)
+    const layoutNodes = generateOptimizedTreeLayout(nodes, false) // Normal layout for decisions
 
     return {
       nodes: layoutNodes,
@@ -165,7 +165,7 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
     nodes.push(rootNode)
 
     // Create the causal tree (similar to consequence tree but with different semantics)
-    analysis.firstOrder.forEach((cause: { title: string; description: string }, index: number) => {
+    analysis.firstOrder.forEach((cause: { title: string; description: string; probability: number }, index: number) => {
       const nodeId = `cause-${index}`
       const node: DecisionNode = {
         id: nodeId,
@@ -174,7 +174,8 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
           label: cause.title,
           description: cause.description,
           order: 1,
-          nodeType: 'forecast'
+          nodeType: 'forecast',
+          probability: cause.probability || 50
         },
         position: { x: 0, y: 0 }
       }
@@ -189,7 +190,7 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
       })
 
       if (analysis.secondOrder[index]) {
-        analysis.secondOrder[index].forEach((rootCause: { title: string; description: string }, secondIndex: number) => {
+        analysis.secondOrder[index].forEach((rootCause: { title: string; description: string; probability: number }, secondIndex: number) => {
           const secondNodeId = `root-cause-${index}-${secondIndex}`
           const secondNode: DecisionNode = {
             id: secondNodeId,
@@ -198,7 +199,8 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
               label: rootCause.title,
               description: rootCause.description,
               order: 2,
-              nodeType: 'forecast'
+              nodeType: 'forecast',
+              probability: rootCause.probability || 50
             },
             position: { x: 0, y: 0 }
           }
@@ -215,7 +217,7 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
       }
     })
 
-    const layoutNodes = generateOptimizedTreeLayout(nodes)
+    const layoutNodes = generateOptimizedTreeLayout(nodes, true) // Reversed layout for forecast
 
     return {
       nodes: layoutNodes,

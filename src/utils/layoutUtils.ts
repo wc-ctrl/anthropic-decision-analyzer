@@ -64,7 +64,7 @@ export function calculateNodeDimensions(node: DecisionNode): NodeDimensions {
 }
 
 // Enhanced tree layout algorithm with overlap prevention
-export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode[] {
+export function generateOptimizedTreeLayout(nodes: DecisionNode[], isReversed: boolean = false): DecisionNode[] {
   const layoutNodes: LayoutNode[] = nodes.map(node => ({
     ...node,
     dimensions: calculateNodeDimensions(node)
@@ -87,7 +87,8 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode
   const rootNodes = nodesByOrder[0] || []
   if (rootNodes.length > 0) {
     const rootNode = rootNodes[0]
-    rootNode.position = { x: 0, y: 0 } // Will center later
+    // In reversed mode (forecast), root goes at bottom; in normal mode, at top
+    rootNode.position = { x: 0, y: isReversed ? levelGap * maxOrder : 0 }
   }
 
   // Position first order nodes
@@ -102,7 +103,7 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode
     firstOrder.forEach((node, index) => {
       node.position = {
         x: currentX + node.dimensions.width / 2,
-        y: levelGap
+        y: isReversed ? levelGap * (maxOrder - 1) : levelGap
       }
       currentX += node.dimensions.width + nodeGap
     })
@@ -127,7 +128,7 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode
     currentOrderNodes.forEach((node, index) => {
       node.position = {
         x: currentX + node.dimensions.width / 2,
-        y: levelGap * currentOrder
+        y: isReversed ? levelGap * (maxOrder - currentOrder) : levelGap * currentOrder
       }
       currentX += node.dimensions.width + nodeGap
     })
