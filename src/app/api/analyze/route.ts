@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
 
 async function generateConsequences(decision: string) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
     messages: [{
       role: 'user',
@@ -122,7 +122,7 @@ Focus on realistic, business-relevant consequences that executives would care ab
 
 async function generateCausalPathways(forecast: string) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-latest',
+    model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
     messages: [{
       role: 'user',

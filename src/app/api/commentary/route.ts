@@ -57,7 +57,7 @@ async function generateCommentary(
     }[triggeredBy]
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-latest',
+      model: 'claude-3-5-sonnet-20241022',
       max_tokens: 1000,
       messages: [{
         role: 'user',
