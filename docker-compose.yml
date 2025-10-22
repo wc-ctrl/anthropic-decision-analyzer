@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  anthropic-decision-analyzer:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3002:3000"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_ANTHROPIC_API_KEY=${NEXT_PUBLIC_ANTHROPIC_API_KEY}
+    restart: unless-stopped
+    container_name: anthropic-decision-analyzer
+    volumes:
+      - .:/app
+      - /app/node_modules
