@@ -11,7 +11,7 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { type, input } = body
+    const { type, input, useSlack = true, useGDrive = true } = body
 
     if (!process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY) {
       return NextResponse.json(
@@ -20,11 +20,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Get contextual data from MCP sources if available
+    let contextualData = null
+    const sources = []
+    if (useSlack) sources.push('slack')
+    if (useGDrive) sources.push('gdrive')
+
+    if (sources.length > 0) {
+      try {
+        const contextResponse = await fetch(`${request.url.split('/api')[0]}/api/mcp/get-context`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: input, sources })
+        })
+
+        if (contextResponse.ok) {
+          const contextResult = await contextResponse.json()
+          contextualData = contextResult.context
+        }
+      } catch (contextError) {
+        console.log('Context retrieval failed, proceeding without MCP data:', contextError)
+      }
+    }
+
     let analysis
     if (type === 'decision') {
-      analysis = await generateConsequences(input)
+      analysis = await generateConsequences(input, contextualData)
     } else if (type === 'forecast') {
-      analysis = await generateCausalPathways(input)
+      analysis = await generateCausalPathways(input, contextualData)
     } else {
       return NextResponse.json(
         { error: 'Invalid analysis type' },
@@ -42,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateConsequences(decision: string) {
+async function generateConsequences(decision: string, contextualData?: any) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -51,6 +74,18 @@ async function generateConsequences(decision: string) {
       content: `You are an expert business analyst helping executives analyze decisions.
 
 Given this decision: "${decision}"
+
+${contextualData ? `
+ADDITIONAL CONTEXT from organizational sources:
+
+Slack Conversations:
+${contextualData.slack ? contextualData.slack.map((msg: any) => `- ${msg.channel}: ${msg.content}`).join('\n') : 'No Slack data available'}
+
+Google Drive Documents:
+${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- ${doc.fileName}: ${doc.excerpt}`).join('\n') : 'No Google Drive data available'}
+
+Use this context to inform your analysis, but focus primarily on strategic business implications.
+` : ''}
 
 Generate a structured analysis with:
 1. EXACTLY 5 first-order consequences (direct results)
@@ -120,7 +155,7 @@ Focus on realistic, business-relevant consequences that executives would care ab
   }
 }
 
-async function generateCausalPathways(forecast: string) {
+async function generateCausalPathways(forecast: string, contextualData?: any) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -129,6 +164,18 @@ async function generateCausalPathways(forecast: string) {
       content: `You are an expert superforecaster trained in the methodology of Philip Tetlock and the Good Judgment Project. You understand base rates, reference class forecasting, and probabilistic reasoning.
 
 Given this outcome/forecast: "${forecast}"
+
+${contextualData ? `
+ADDITIONAL CONTEXT from organizational sources:
+
+Slack Conversations:
+${contextualData.slack ? contextualData.slack.map((msg: any) => `- ${msg.channel}: ${msg.content}`).join('\n') : 'No Slack data available'}
+
+Google Drive Documents:
+${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- ${doc.fileName}: ${doc.excerpt}`).join('\n') : 'No Google Drive data available'}
+
+Use this context to ground your probability estimates in real organizational data and strategic discussions.
+` : ''}
 
 Generate a causal analysis showing what led to this outcome:
 1. EXACTLY 5 first-order causes (direct drivers that led to this outcome)

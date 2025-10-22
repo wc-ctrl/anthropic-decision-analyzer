@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { generateOptimizedTreeLayout } from '@/utils/layoutUtils'
 
 
-export async function generateConsequences(decision: string): Promise<DecisionAnalysis> {
+export async function generateConsequences(decision: string, useSlack: boolean = false, useGDrive: boolean = false): Promise<DecisionAnalysis> {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -12,7 +12,9 @@ export async function generateConsequences(decision: string): Promise<DecisionAn
       },
       body: JSON.stringify({
         type: 'decision',
-        input: decision
+        input: decision,
+        useSlack,
+        useGDrive
       })
     })
 
@@ -127,7 +129,7 @@ export async function generateConsequences(decision: string): Promise<DecisionAn
   }
 }
 
-export async function generateCausalPathways(forecast: string): Promise<DecisionAnalysis> {
+export async function generateCausalPathways(forecast: string, useSlack: boolean = false, useGDrive: boolean = false): Promise<DecisionAnalysis> {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -136,7 +138,9 @@ export async function generateCausalPathways(forecast: string): Promise<Decision
       },
       body: JSON.stringify({
         type: 'forecast',
-        input: forecast
+        input: forecast,
+        useSlack,
+        useGDrive
       })
     })
 

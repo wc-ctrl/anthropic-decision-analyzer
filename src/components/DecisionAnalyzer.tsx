@@ -10,6 +10,7 @@ import { InputPanel } from './InputPanel'
 import { DarkModeToggle } from './DarkModeToggle'
 import { LayoutControls } from './LayoutControls'
 import { DeepLayerButton } from './DeepLayerButton'
+import { McpIntegrationPanel } from './McpIntegrationPanel'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
@@ -25,6 +26,8 @@ export default function DecisionAnalyzer() {
   const [commentary, setCommentary] = useState<Commentary[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isGeneratingDeepLayer, setIsGeneratingDeepLayer] = useState(false)
+  const [hasSlackData, setHasSlackData] = useState(false)
+  const [hasGDriveData, setHasGDriveData] = useState(false)
   const { recalculateLayout } = useAutoLayout()
 
   // React Flow instance for programmatic control
@@ -184,6 +187,11 @@ export default function DecisionAnalyzer() {
     }
   }
 
+  const handleDataSourcesUpdated = (slackConnected: boolean, gdriveConnected: boolean) => {
+    setHasSlackData(slackConnected)
+    setHasGDriveData(gdriveConnected)
+  }
+
   const handleInputSubmit = async (input: string) => {
     setIsGenerating(true)
     setMode(prev => ({ ...prev, rootInput: input }))
@@ -207,9 +215,9 @@ export default function DecisionAnalyzer() {
       // Generate consequences or causal pathways based on mode
       let analysis: DecisionAnalysis
       if (mode.type === 'decision') {
-        analysis = await generateConsequences(input)
+        analysis = await generateConsequences(input, hasSlackData, hasGDriveData)
       } else {
-        analysis = await generateCausalPathways(input)
+        analysis = await generateCausalPathways(input, hasSlackData, hasGDriveData)
       }
 
       // Update nodes and edges with generated analysis
@@ -362,7 +370,10 @@ export default function DecisionAnalyzer() {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Claudeswitz
             </h1>
-            <DarkModeToggle />
+            <div className="flex items-center gap-3">
+              <McpIntegrationPanel onDataSourcesUpdated={handleDataSourcesUpdated} />
+              <DarkModeToggle />
+            </div>
           </div>
           <div className="flex gap-4 items-center flex-wrap">
             <ModeSelector
