@@ -83,6 +83,9 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[], isReversed: b
   const levelGap = 160 // Vertical gap between levels (reduced for more layers)
   const nodeGap = 30 // Minimum horizontal gap between nodes (reduced for more nodes)
 
+  // Calculate max order early
+  const maxOrder = Math.max(...layoutNodes.map(n => n.data.order))
+
   // Position root node
   const rootNodes = nodesByOrder[0] || []
   if (rootNodes.length > 0) {
@@ -110,8 +113,6 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[], isReversed: b
   }
 
   // Position nodes for orders 2 and beyond with dynamic distribution
-  const maxOrder = Math.max(...layoutNodes.map(n => n.data.order))
-
   for (let currentOrder = 2; currentOrder <= maxOrder; currentOrder++) {
     const currentOrderNodes = nodesByOrder[currentOrder] || []
     if (currentOrderNodes.length === 0) continue
