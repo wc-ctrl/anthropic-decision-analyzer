@@ -9,6 +9,7 @@ import { ModeSelector } from './ModeSelector'
 import { InputPanel } from './InputPanel'
 import { DarkModeToggle } from './DarkModeToggle'
 import { LayoutControls } from './LayoutControls'
+import { DeepLayerButton } from './DeepLayerButton'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
@@ -23,10 +24,15 @@ export default function DecisionAnalyzer() {
   const [mode, setMode] = useState<AnalysisMode>({ type: 'decision', rootInput: '' })
   const [commentary, setCommentary] = useState<Commentary[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isGeneratingDeepLayer, setIsGeneratingDeepLayer] = useState(false)
   const { recalculateLayout } = useAutoLayout()
 
   // React Flow instance for programmatic control
   const [reactFlowInstance, setReactFlowInstance] = React.useState<any>(null)
+
+  // Calculate current max order and allowed max order
+  const currentMaxOrder = nodes.length > 0 ? Math.max(...nodes.map(n => n.data.order)) : 0
+  const maxAllowedOrder = 6 // Root (0) + 6 layers = 7 total tiers
 
   // Add event listeners for node interactions
   React.useEffect(() => {
@@ -75,6 +81,99 @@ export default function DecisionAnalyzer() {
   const handleFitView = () => {
     if (reactFlowInstance) {
       reactFlowInstance.fitView({ padding: 0.1 })
+    }
+  }
+
+  const handleGenerateDeepLayer = async () => {
+    if (currentMaxOrder >= maxAllowedOrder || isGeneratingDeepLayer) return
+
+    setIsGeneratingDeepLayer(true)
+
+    try {
+      // Get all nodes of the current highest order as parents
+      const parentNodes = nodes.filter(n => n.data.order === currentMaxOrder)
+      const targetOrder = currentMaxOrder + 1
+
+      // Call API to generate next layer
+      const response = await fetch('/api/generate-layer', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          parentNodes,
+          targetOrder
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate deep layer')
+      }
+
+      const layerData = await response.json()
+
+      // Create new nodes and edges
+      const newNodes: DecisionNode[] = []
+      const newEdges: DecisionEdge[] = []
+
+      layerData.consequences.forEach((consequence: any, index: number) => {
+        const nodeId = `layer-${targetOrder}-${index}`
+        const parentNode = parentNodes.find(p => p.id === consequence.parentId) || parentNodes[index % parentNodes.length]
+
+        const newNode: DecisionNode = {
+          id: nodeId,
+          type: 'interactive',
+          data: {
+            label: consequence.title,
+            description: consequence.description,
+            order: targetOrder,
+            nodeType: mode.type === 'decision' ? 'consequence' : 'forecast'
+          },
+          position: { x: 0, y: 0 } // Will be set by layout
+        }
+
+        const newEdge: DecisionEdge = {
+          id: `edge-${parentNode.id}-${nodeId}`,
+          source: parentNode.id,
+          target: nodeId,
+          type: 'smoothstep',
+          animated: true
+        }
+
+        newNodes.push(newNode)
+        newEdges.push(newEdge)
+      })
+
+      // Update nodes and edges with layout
+      const allNodes = [...nodes, ...newNodes]
+      const allEdges = [...edges, ...newEdges]
+
+      recalculateLayout(allNodes, setNodes)
+      setEdges(allEdges)
+
+      // Generate commentary for the new layer
+      const currentAnalysis: DecisionAnalysis = {
+        nodes: allNodes,
+        edges: allEdges,
+        commentary,
+        mode
+      }
+
+      const layerCommentary = await generateCommentary(currentAnalysis, 'nodeAdd', newNodes.map(n => n.id))
+      setCommentary(prev => [...prev, layerCommentary])
+
+    } catch (error) {
+      console.error('Error generating deep layer:', error)
+      const errorCommentary: Commentary = {
+        id: `error-${Date.now()}`,
+        content: 'An error occurred while generating the additional layer. Please try again.',
+        timestamp: new Date(),
+        triggeredBy: 'nodeAdd',
+        relatedNodes: []
+      }
+      setCommentary(prev => [...prev, errorCommentary])
+    } finally {
+      setIsGeneratingDeepLayer(false)
     }
   }
 
@@ -262,11 +361,20 @@ export default function DecisionAnalyzer() {
               isGenerating={isGenerating}
             />
             {nodes.length > 0 && (
-              <LayoutControls
-                onAutoLayout={handleAutoLayout}
-                onFitView={handleFitView}
-                isGenerating={isGenerating}
-              />
+              <>
+                <LayoutControls
+                  onAutoLayout={handleAutoLayout}
+                  onFitView={handleFitView}
+                  isGenerating={isGenerating || isGeneratingDeepLayer}
+                />
+                <DeepLayerButton
+                  onGenerateDeepLayer={handleGenerateDeepLayer}
+                  isGenerating={isGeneratingDeepLayer}
+                  currentMaxOrder={currentMaxOrder}
+                  maxAllowedOrder={maxAllowedOrder}
+                  disabled={isGenerating}
+                />
+              </>
             )}
           </div>
         </div>

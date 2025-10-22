@@ -6,6 +6,11 @@ import { DecisionNode } from '@/types/decision'
 import { Edit3, Plus, Trash2, Check, X } from 'lucide-react'
 import { calculateNodeDimensions } from '@/utils/layoutUtils'
 
+function getOrdinalSuffix(num: number): string {
+  const suffixes = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th']
+  return num > 3 ? 'th' : suffixes[num] || 'th'
+}
+
 export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
   const [isEditing, setIsEditing] = useState(data.isEditing || false)
   const [editValue, setEditValue] = useState(data.label)
@@ -81,6 +86,18 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
       case 2: // Second order
         borderClasses = "border-orange-500 dark:border-orange-400 bg-orange-50 dark:bg-orange-900/20"
         break
+      case 3: // Third order
+        borderClasses = "border-purple-500 dark:border-purple-400 bg-purple-50 dark:bg-purple-900/20"
+        break
+      case 4: // Fourth order
+        borderClasses = "border-pink-500 dark:border-pink-400 bg-pink-50 dark:bg-pink-900/20"
+        break
+      case 5: // Fifth order
+        borderClasses = "border-indigo-500 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-900/20"
+        break
+      case 6: // Sixth order
+        borderClasses = "border-teal-500 dark:border-teal-400 bg-teal-50 dark:bg-teal-900/20"
+        break
       default:
         borderClasses = "border-gray-300 dark:border-gray-600"
     }
@@ -110,7 +127,7 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
         {/* Header with order indicator */}
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {data.order === 0 ? 'Root' : `${data.order}${data.order === 1 ? 'st' : 'nd'} Order`}
+            {data.order === 0 ? 'Root' : `${data.order}${getOrdinalSuffix(data.order)} Order`}
           </span>
           <div className="flex gap-1">
             {!isEditing && (

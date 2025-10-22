@@ -80,8 +80,8 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode
   })
 
   // Layout parameters
-  const levelGap = 180 // Vertical gap between levels
-  const nodeGap = 40 // Minimum horizontal gap between nodes
+  const levelGap = 160 // Vertical gap between levels (reduced for more layers)
+  const nodeGap = 30 // Minimum horizontal gap between nodes (reduced for more nodes)
 
   // Position root node
   const rootNodes = nodesByOrder[0] || []
@@ -108,98 +108,29 @@ export function generateOptimizedTreeLayout(nodes: DecisionNode[]): DecisionNode
     })
   }
 
-  // Position second order nodes with improved distribution
-  const secondOrder = nodesByOrder[2] || []
-  if (secondOrder.length > 0) {
-    // Calculate total width needed for all second order nodes
-    const totalSecondOrderWidth = secondOrder.reduce((sum, node, index) => {
+  // Position nodes for orders 2 and beyond with dynamic distribution
+  const maxOrder = Math.max(...layoutNodes.map(n => n.data.order))
+
+  for (let currentOrder = 2; currentOrder <= maxOrder; currentOrder++) {
+    const currentOrderNodes = nodesByOrder[currentOrder] || []
+    if (currentOrderNodes.length === 0) continue
+
+    // Calculate total width needed for current order nodes
+    const totalCurrentOrderWidth = currentOrderNodes.reduce((sum, node, index) => {
       return sum + node.dimensions.width + (index > 0 ? nodeGap : 0)
     }, 0)
 
     // Start from the leftmost position
-    let currentX = -totalSecondOrderWidth / 2
+    let currentX = -totalCurrentOrderWidth / 2
 
-    // Position all second order nodes in a single row with proper spacing
-    secondOrder.forEach((node, index) => {
+    // Position all current order nodes in a single row with proper spacing
+    currentOrderNodes.forEach((node, index) => {
       node.position = {
         x: currentX + node.dimensions.width / 2,
-        y: levelGap * 2
+        y: levelGap * currentOrder
       }
       currentX += node.dimensions.width + nodeGap
     })
-
-    // Optional: If you want to keep parent-child visual relationships,
-    // but prevent overlap, we can adjust positions while maintaining connections
-
-    // Group by parent for connection purposes but ensure no overlap
-    const secondOrderByParent: { [parentIndex: number]: LayoutNode[] } = {}
-    secondOrder.forEach(node => {
-      const parts = node.id.split('-')
-      if (parts.length >= 3 && parts[0] === 'second') {
-        const parentIndex = parseInt(parts[1])
-        if (!secondOrderByParent[parentIndex]) {
-          secondOrderByParent[parentIndex] = []
-        }
-        secondOrderByParent[parentIndex].push(node)
-      }
-    })
-
-    // Try to move nodes closer to their parents while avoiding overlap
-    const finalPositions: LayoutNode[] = [...secondOrder]
-    let improved = true
-    let iterations = 0
-    const maxIterations = 5
-
-    while (improved && iterations < maxIterations) {
-      improved = false
-      iterations++
-
-      firstOrder.forEach((parentNode, parentIndex) => {
-        const children = secondOrderByParent[parentIndex] || []
-
-        children.forEach(child => {
-          // Try to move child closer to parent
-          const idealX = parentNode.position.x
-          const currentChild = finalPositions.find(n => n.id === child.id)
-          if (!currentChild) return
-
-          // Find the closest valid position to ideal that doesn't cause overlap
-          let bestX = currentChild.position.x
-          let bestDistance = Math.abs(currentChild.position.x - idealX)
-
-          // Try positions in steps toward the parent
-          const step = 20
-          const direction = idealX > currentChild.position.x ? 1 : -1
-
-          for (let testX = currentChild.position.x;
-               Math.abs(testX - currentChild.position.x) <= 200;
-               testX += step * direction) {
-
-            const testNode = { ...currentChild, position: { x: testX, y: currentChild.position.y } }
-            let hasCollision = false
-
-            // Check collision with all other second-order nodes
-            for (const other of finalPositions) {
-              if (other.id !== currentChild.id && nodesOverlap(testNode, other)) {
-                hasCollision = true
-                break
-              }
-            }
-
-            if (!hasCollision) {
-              const distance = Math.abs(testX - idealX)
-              if (distance < bestDistance) {
-                bestX = testX
-                bestDistance = distance
-                improved = true
-              }
-            }
-          }
-
-          currentChild.position.x = bestX
-        })
-      })
-    }
   }
 
   // Center the entire tree
