@@ -1,0 +1,35 @@
+{
+  "mcpServers": {
+    "google-drive": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-gdrive"],
+      "env": {
+        "GOOGLE_APPLICATION_CREDENTIALS": "./google-credentials.json"
+      },
+      "description": "Google Drive MCP server for accessing documents, sheets, and files"
+    },
+    "slack": {
+      "command": "npx",
+      "args": ["@modelcontextprotocol/server-slack"],
+      "env": {
+        "SLACK_BOT_TOKEN": "",
+        "SLACK_USER_TOKEN": ""
+      },
+      "description": "Slack MCP server for channel access, messaging, and team collaboration"
+    }
+  },
+  "integrations": {
+    "google-drive": {
+      "enabled": false,
+      "permissions": ["read", "search"],
+      "fileTypes": ["docs", "sheets", "slides", "pdf"],
+      "description": "Access Google Drive documents for decision context and research"
+    },
+    "slack": {
+      "enabled": false,
+      "permissions": ["read_channels", "post_messages", "read_users"],
+      "features": ["channel_listing", "message_history", "user_profiles"],
+      "description": "Integrate with Slack for team decision collaboration and updates"
+    }
+  }
+}

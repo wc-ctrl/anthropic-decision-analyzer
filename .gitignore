@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# MCP credentials and sensitive files
+google-credentials.json
+slack-credentials.json
+mcp-servers.json
+
+# MCP logs
+mcp-*.log
