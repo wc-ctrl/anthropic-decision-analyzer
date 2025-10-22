@@ -1,11 +1,11 @@
 'use client'
 
 import React from 'react'
-import { GitBranch, TrendingUp } from 'lucide-react'
+import { GitBranch, TrendingUp, Target } from 'lucide-react'
 
 interface ModeSelectorProps {
-  currentMode: 'decision' | 'forecast'
-  onModeChange: (mode: 'decision' | 'forecast') => void
+  currentMode: 'decision' | 'forecast' | 'scenario'
+  onModeChange: (mode: 'decision' | 'forecast' | 'scenario') => void
 }
 
 export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
@@ -32,6 +32,17 @@ export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
       >
         <TrendingUp size={16} />
         Causal Analysis
+      </button>
+      <button
+        onClick={() => onModeChange('scenario')}
+        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+          currentMode === 'scenario'
+            ? 'bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+        }`}
+      >
+        <Target size={16} />
+        Scenario Analysis
       </button>
     </div>
   )

@@ -14,6 +14,8 @@ import { McpIntegrationPanel } from './McpIntegrationPanel'
 import { RerunAnalysisButton } from './RerunAnalysisButton'
 import { DevilsAdvocateButton } from './DevilsAdvocateButton'
 import { DevilsAdvocateModal } from './DevilsAdvocateModal'
+import { ScenarioButton } from './ScenarioButton'
+import { ScenarioAnalysisModal } from './ScenarioAnalysisModal'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
@@ -32,6 +34,11 @@ export default function DecisionAnalyzer() {
   const [hasSlackData, setHasSlackData] = useState(false)
   const [hasGDriveData, setHasGDriveData] = useState(false)
   const [devilsAdvocateModal, setDevilsAdvocateModal] = useState({
+    isOpen: false,
+    data: null as any,
+    loading: false
+  })
+  const [scenarioModal, setScenarioModal] = useState({
     isOpen: false,
     data: null as any,
     loading: false
@@ -78,7 +85,7 @@ export default function DecisionAnalyzer() {
     setEdges((eds) => addEdge(edge, eds) as DecisionEdge[])
   }, [setEdges])
 
-  const handleModeChange = (newMode: 'decision' | 'forecast') => {
+  const handleModeChange = (newMode: 'decision' | 'forecast' | 'scenario') => {
     setMode({ type: newMode, rootInput: '' })
     setNodes([])
     setEdges([])
@@ -290,6 +297,88 @@ export default function DecisionAnalyzer() {
     })
   }
 
+  const handleScenarioAnalysis = async () => {
+    if (!mode.rootInput) return
+
+    // Open modal with loading state
+    setScenarioModal({
+      isOpen: true,
+      data: null,
+      loading: true
+    })
+
+    try {
+      // Get contextual data if MCP sources are connected
+      let contextualData = null
+      if (hasSlackData || hasGDriveData) {
+        try {
+          const contextResponse = await fetch('/api/mcp/get-context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: mode.rootInput,
+              sources: [
+                ...(hasSlackData ? ['slack'] : []),
+                ...(hasGDriveData ? ['gdrive'] : [])
+              ]
+            })
+          })
+          if (contextResponse.ok) {
+            const contextResult = await contextResponse.json()
+            contextualData = contextResult.context
+          }
+        } catch (error) {
+          console.log('Context retrieval failed for scenario analysis:', error)
+        }
+      }
+
+      // Generate scenario analysis
+      const response = await fetch('/api/scenario', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: mode.rootInput,
+          contextualData
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate scenario analysis')
+      }
+
+      const scenarioData = await response.json()
+
+      setScenarioModal({
+        isOpen: true,
+        data: scenarioData,
+        loading: false
+      })
+
+    } catch (error) {
+      console.error('Error generating scenario analysis:', error)
+      setScenarioModal({
+        isOpen: true,
+        data: {
+          targetOutcome: mode.rootInput,
+          tracks: [],
+          methodology: 'Error occurred during analysis',
+          keyUncertainties: ['Analysis generation failed']
+        },
+        loading: false
+      })
+    }
+  }
+
+  const handleCloseScenario = () => {
+    setScenarioModal({
+      isOpen: false,
+      data: null,
+      loading: false
+    })
+  }
+
   const handleInputSubmit = async (input: string) => {
     setIsGenerating(true)
     setMode(prev => ({ ...prev, rootInput: input }))
@@ -309,6 +398,12 @@ export default function DecisionAnalyzer() {
 
       setNodes([rootNode])
       setEdges([])
+
+      // For scenario mode, we don't generate node trees - scenarios are handled separately
+      if (mode.type === 'scenario') {
+        setIsGenerating(false)
+        return // Scenario analysis uses the modal system, not node trees
+      }
 
       // Generate consequences or causal pathways based on mode
       let analysis: DecisionAnalysis
@@ -509,7 +604,13 @@ export default function DecisionAnalyzer() {
                   isGenerating={isGeneratingDeepLayer}
                   currentMaxOrder={currentMaxOrder}
                   maxAllowedOrder={maxAllowedOrder}
-                  disabled={isGenerating || devilsAdvocateModal.loading}
+                  disabled={isGenerating || devilsAdvocateModal.loading || scenarioModal.loading}
+                />
+                <ScenarioButton
+                  onOpenScenario={handleScenarioAnalysis}
+                  isGenerating={scenarioModal.loading}
+                  hasAnalysis={mode.rootInput.length > 0}
+                  disabled={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading}
                 />
               </>
             )}
@@ -554,6 +655,14 @@ export default function DecisionAnalyzer() {
         data={devilsAdvocateModal.data}
         analysisType={mode.type}
         loading={devilsAdvocateModal.loading}
+      />
+
+      {/* Scenario Analysis Modal */}
+      <ScenarioAnalysisModal
+        isOpen={scenarioModal.isOpen}
+        onClose={handleCloseScenario}
+        data={scenarioModal.data}
+        loading={scenarioModal.loading}
       />
     </div>
   )

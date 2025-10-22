@@ -25,8 +25,30 @@ export interface DecisionEdge {
 }
 
 export interface AnalysisMode {
-  type: 'decision' | 'forecast'
+  type: 'decision' | 'forecast' | 'scenario'
   rootInput: string
+}
+
+export interface ScenarioSignpost {
+  id: string
+  text: string
+  timeframe: string
+  confidence: number
+  tier: 1 | 2 | 3 | 4 | 5
+}
+
+export interface ScenarioTrack {
+  probability: 100 | 80 | 60 | 40 | 20 | 0
+  label: 'Maximally Likely' | 'Very Likely' | 'Somewhat Likely' | 'Somewhat Unlikely' | 'Very Unlikely' | 'Maximally Unlikely'
+  signposts: ScenarioSignpost[]
+  description: string
+}
+
+export interface ScenarioAnalysis {
+  targetOutcome: string
+  tracks: ScenarioTrack[]
+  methodology: string
+  keyUncertainties: string[]
 }
 
 export interface Commentary {

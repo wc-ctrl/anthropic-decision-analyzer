@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Send, Loader2 } from 'lucide-react'
 
 interface InputPanelProps {
-  mode: 'decision' | 'forecast'
+  mode: 'decision' | 'forecast' | 'scenario'
   onSubmit: (input: string) => void
   isGenerating: boolean
 }
@@ -22,9 +22,15 @@ export function InputPanel({ mode, onSubmit, isGenerating }: InputPanelProps) {
 
   const placeholder = mode === 'decision'
     ? 'Enter a decision you\'re considering (e.g., "Launch new product line in Q2")'
-    : 'Enter an outcome you want to understand (e.g., "Company reaches $100B revenue by 2026")'
+    : mode === 'forecast'
+    ? 'Enter an outcome you want to understand (e.g., "Company reaches $100B revenue by 2026")'
+    : 'Enter a future outcome for scenario analysis (e.g., "AGI developed by frontier lab in 2026")'
 
-  const buttonText = mode === 'decision' ? 'Analyze Consequences' : 'Map Causal Chain'
+  const buttonText = mode === 'decision'
+    ? 'Analyze Consequences'
+    : mode === 'forecast'
+    ? 'Map Causal Chain'
+    : 'Set Target Outcome'
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 flex-1 max-w-2xl">
