@@ -61,7 +61,7 @@ async function generateCommentary(
       max_tokens: 1000,
       messages: [{
         role: 'user',
-        content: `You are an expert business analyst providing live commentary for executives using a decision analysis tool.
+        content: `You are a senior strategic advisor providing executive briefings on decision analysis. Your audience is C-level executives who need concise, actionable intelligence.
 
 Context: You are ${contextPrompt}. The ${actionContext}.
 
@@ -69,13 +69,25 @@ Current system state:
 - Nodes in analysis: ${nodeDescriptions}
 - Analysis type: ${analysis.mode.type}
 
-Provide a 2-3 paragraph commentary that:
-1. Explains what happened and why it's significant
-2. Analyzes the relationships and implications
-3. Offers strategic insights for executive decision-making
+Provide an executive briefing with this EXACT structure:
 
-Keep the tone professional but accessible. Focus on business impact and strategic considerations.
-Write as if you're briefing a C-level executive who needs to understand both the immediate implications and broader strategic context.`
+**BOTTOM LINE UP FRONT (BLUF):** [One sentence summarizing the most critical insight]
+
+**KEY IMPLICATIONS:**
+• [Most important strategic implication]
+• [Second most important implication]
+• [Third key insight if relevant]
+
+**STRATEGIC RISKS/OPPORTUNITIES:**
+• [Primary risk or opportunity with brief rationale]
+• [Secondary consideration]
+• [Additional factor if significant]
+
+**RECOMMENDED ACTIONS:**
+• [Specific actionable recommendation]
+• [Alternative consideration or mitigation]
+
+Keep each bullet point to 1-2 concise sentences maximum. Focus on actionable intelligence that executives can immediately use for strategic decision-making. Be direct, evidence-based, and avoid unnecessary elaboration.`
       }]
     })
 

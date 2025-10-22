@@ -91,11 +91,38 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
 
                 {/* Content */}
                 <div className="prose prose-sm max-w-none">
-                  {comment.content.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3 last:mb-0">
-                      {paragraph}
-                    </p>
-                  ))}
+                  {comment.content.split('\n').map((line, index) => {
+                    const trimmedLine = line.trim()
+
+                    // Handle different formatting
+                    if (trimmedLine.startsWith('**') && trimmedLine.endsWith('**')) {
+                      // Bold headers like **BLUF:** or **KEY IMPLICATIONS:**
+                      const headerText = trimmedLine.replace(/\*\*/g, '')
+                      return (
+                        <h4 key={index} className="font-semibold text-gray-900 dark:text-white mt-4 mb-2 first:mt-0">
+                          {headerText}
+                        </h4>
+                      )
+                    } else if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-')) {
+                      // Bullet points
+                      return (
+                        <div key={index} className="flex items-start gap-2 mb-1">
+                          <span className="text-blue-600 dark:text-blue-400 font-bold mt-1">•</span>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
+                            {trimmedLine.replace(/^[•-]\s*/, '')}
+                          </p>
+                        </div>
+                      )
+                    } else if (trimmedLine.length > 0) {
+                      // Regular paragraphs
+                      return (
+                        <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-2">
+                          {trimmedLine}
+                        </p>
+                      )
+                    }
+                    return null
+                  }).filter(Boolean)}
                 </div>
 
                 {/* Related Nodes Indicator */}
