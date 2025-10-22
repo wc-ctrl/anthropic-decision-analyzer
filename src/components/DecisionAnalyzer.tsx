@@ -12,6 +12,8 @@ import { LayoutControls } from './LayoutControls'
 import { DeepLayerButton } from './DeepLayerButton'
 import { McpIntegrationPanel } from './McpIntegrationPanel'
 import { RerunAnalysisButton } from './RerunAnalysisButton'
+import { DevilsAdvocateButton } from './DevilsAdvocateButton'
+import { DevilsAdvocateModal } from './DevilsAdvocateModal'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
@@ -29,6 +31,11 @@ export default function DecisionAnalyzer() {
   const [isGeneratingDeepLayer, setIsGeneratingDeepLayer] = useState(false)
   const [hasSlackData, setHasSlackData] = useState(false)
   const [hasGDriveData, setHasGDriveData] = useState(false)
+  const [devilsAdvocateModal, setDevilsAdvocateModal] = useState({
+    isOpen: false,
+    data: null as any,
+    loading: false
+  })
   const { recalculateLayout } = useAutoLayout()
 
   // React Flow instance for programmatic control
@@ -198,6 +205,89 @@ export default function DecisionAnalyzer() {
 
     // Rerun the analysis with the same input but generate fresh results
     await handleInputSubmit(mode.rootInput)
+  }
+
+  const handleDevilsAdvocate = async () => {
+    if (!mode.rootInput) return
+
+    // Open modal with loading state
+    setDevilsAdvocateModal({
+      isOpen: true,
+      data: null,
+      loading: true
+    })
+
+    try {
+      // Get contextual data if MCP sources are connected
+      let contextualData = null
+      if (hasSlackData || hasGDriveData) {
+        try {
+          const contextResponse = await fetch('/api/mcp/get-context', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: mode.rootInput,
+              sources: [
+                ...(hasSlackData ? ['slack'] : []),
+                ...(hasGDriveData ? ['gdrive'] : [])
+              ]
+            })
+          })
+          if (contextResponse.ok) {
+            const contextResult = await contextResponse.json()
+            contextualData = contextResult.context
+          }
+        } catch (error) {
+          console.log('Context retrieval failed for devil\'s advocate:', error)
+        }
+      }
+
+      // Generate devil's advocate analysis
+      const response = await fetch('/api/devils-advocate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: mode.type,
+          input: mode.rootInput,
+          contextualData
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate devil\'s advocate analysis')
+      }
+
+      const devilsAdvocateData = await response.json()
+
+      setDevilsAdvocateModal({
+        isOpen: true,
+        data: devilsAdvocateData,
+        loading: false
+      })
+
+    } catch (error) {
+      console.error('Error generating devil\'s advocate analysis:', error)
+      setDevilsAdvocateModal({
+        isOpen: true,
+        data: {
+          title: 'Analysis Error',
+          summary: 'Unable to generate contrarian analysis at this time.',
+          arguments: [],
+          conclusion: 'Please try again later.'
+        },
+        loading: false
+      })
+    }
+  }
+
+  const handleCloseDevilsAdvocate = () => {
+    setDevilsAdvocateModal({
+      isOpen: false,
+      data: null,
+      loading: false
+    })
   }
 
   const handleInputSubmit = async (input: string) => {
@@ -400,19 +490,26 @@ export default function DecisionAnalyzer() {
                   isGenerating={isGenerating}
                   hasAnalysis={nodes.length > 0}
                   analysisType={mode.type}
-                  disabled={isGeneratingDeepLayer}
+                  disabled={isGeneratingDeepLayer || devilsAdvocateModal.loading}
+                />
+                <DevilsAdvocateButton
+                  onOpenDevilsAdvocate={handleDevilsAdvocate}
+                  isGenerating={devilsAdvocateModal.loading}
+                  hasAnalysis={nodes.length > 0}
+                  analysisType={mode.type}
+                  disabled={isGenerating || isGeneratingDeepLayer}
                 />
                 <LayoutControls
                   onAutoLayout={handleAutoLayout}
                   onFitView={handleFitView}
-                  isGenerating={isGenerating || isGeneratingDeepLayer}
+                  isGenerating={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading}
                 />
                 <DeepLayerButton
                   onGenerateDeepLayer={handleGenerateDeepLayer}
                   isGenerating={isGeneratingDeepLayer}
                   currentMaxOrder={currentMaxOrder}
                   maxAllowedOrder={maxAllowedOrder}
-                  disabled={isGenerating}
+                  disabled={isGenerating || devilsAdvocateModal.loading}
                 />
               </>
             )}
@@ -449,6 +546,15 @@ export default function DecisionAnalyzer() {
           />
         </div>
       </div>
+
+      {/* Devil's Advocate Modal */}
+      <DevilsAdvocateModal
+        isOpen={devilsAdvocateModal.isOpen}
+        onClose={handleCloseDevilsAdvocate}
+        data={devilsAdvocateModal.data}
+        analysisType={mode.type}
+        loading={devilsAdvocateModal.loading}
+      />
     </div>
   )
 }
