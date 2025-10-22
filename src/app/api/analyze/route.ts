@@ -11,7 +11,7 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { type, input, useSlack = true, useGDrive = true } = body
+    const { type, input, useSlack = true, useGDrive = true, timestamp } = body
 
     if (!process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY) {
       return NextResponse.json(
@@ -45,9 +45,9 @@ export async function POST(request: NextRequest) {
 
     let analysis
     if (type === 'decision') {
-      analysis = await generateConsequences(input, contextualData)
+      analysis = await generateConsequences(input, contextualData, timestamp)
     } else if (type === 'forecast') {
-      analysis = await generateCausalPathways(input, contextualData)
+      analysis = await generateCausalPathways(input, contextualData, timestamp)
     } else {
       return NextResponse.json(
         { error: 'Invalid analysis type' },
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateConsequences(decision: string, contextualData?: any) {
+async function generateConsequences(decision: string, contextualData?: any, timestamp?: number) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -128,7 +128,11 @@ IMPORTANT: Return ONLY valid JSON with this EXACT structure - no other text:
   }
 }
 
-Focus on realistic, business-relevant consequences that executives would care about. Consider financial, operational, strategic, and human impacts.`
+Focus on realistic, business-relevant consequences that executives would care about. Consider financial, operational, strategic, and human impacts.
+
+${timestamp ? `
+ANALYSIS VARIATION: This is a fresh analysis run. Explore different angles and alternative consequences that might not have been considered in previous analyses. Consider contrarian viewpoints and less obvious implications while maintaining realism.
+` : ''}`
     }]
   })
 
@@ -155,7 +159,7 @@ Focus on realistic, business-relevant consequences that executives would care ab
   }
 }
 
-async function generateCausalPathways(forecast: string, contextualData?: any) {
+async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -226,7 +230,11 @@ IMPORTANT: Return ONLY valid JSON with this EXACT structure:
   }
 }
 
-Focus on realistic, evidence-based causal factors. Consider market dynamics, technological trends, regulatory changes, and competitive forces.`
+Focus on realistic, evidence-based causal factors. Consider market dynamics, technological trends, regulatory changes, and competitive forces.
+
+${timestamp ? `
+ANALYSIS VARIATION: This is a fresh causal analysis run. Consider alternative causal pathways and different probability estimates that might reflect varied scenarios or perspectives. Explore less obvious but plausible causal factors while maintaining superforecasting rigor.
+` : ''}`
     }]
   })
 

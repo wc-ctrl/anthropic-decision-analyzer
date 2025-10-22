@@ -14,7 +14,8 @@ export async function generateConsequences(decision: string, useSlack: boolean =
         type: 'decision',
         input: decision,
         useSlack,
-        useGDrive
+        useGDrive,
+        timestamp: Date.now() // Ensures fresh analysis each time
       })
     })
 
@@ -140,7 +141,8 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
         type: 'forecast',
         input: forecast,
         useSlack,
-        useGDrive
+        useGDrive,
+        timestamp: Date.now() // Ensures fresh analysis each time
       })
     })
 

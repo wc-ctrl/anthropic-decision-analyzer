@@ -11,6 +11,7 @@ import { DarkModeToggle } from './DarkModeToggle'
 import { LayoutControls } from './LayoutControls'
 import { DeepLayerButton } from './DeepLayerButton'
 import { McpIntegrationPanel } from './McpIntegrationPanel'
+import { RerunAnalysisButton } from './RerunAnalysisButton'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
@@ -190,6 +191,13 @@ export default function DecisionAnalyzer() {
   const handleDataSourcesUpdated = (slackConnected: boolean, gdriveConnected: boolean) => {
     setHasSlackData(slackConnected)
     setHasGDriveData(gdriveConnected)
+  }
+
+  const handleRerunAnalysis = async () => {
+    if (!mode.rootInput || isGenerating) return
+
+    // Rerun the analysis with the same input but generate fresh results
+    await handleInputSubmit(mode.rootInput)
   }
 
   const handleInputSubmit = async (input: string) => {
@@ -387,6 +395,13 @@ export default function DecisionAnalyzer() {
             />
             {nodes.length > 0 && (
               <>
+                <RerunAnalysisButton
+                  onRerun={handleRerunAnalysis}
+                  isGenerating={isGenerating}
+                  hasAnalysis={nodes.length > 0}
+                  analysisType={mode.type}
+                  disabled={isGeneratingDeepLayer}
+                />
                 <LayoutControls
                   onAutoLayout={handleAutoLayout}
                   onFitView={handleFitView}
