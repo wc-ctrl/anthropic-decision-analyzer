@@ -47,7 +47,9 @@ async function generateCommentary(
 
     const contextPrompt = analysis.mode.type === 'decision'
       ? `analyzing the consequences of the decision: "${analysis.mode.rootInput}"`
-      : `exploring causal pathways for the forecast: "${analysis.mode.rootInput}"`
+      : analysis.mode.type === 'forecast'
+      ? `exploring causal pathways for the forecast: "${analysis.mode.rootInput}"`
+      : `conducting scenario analysis for the target outcome: "${analysis.mode.rootInput}"`
 
     const actionContext = {
       'initialAnalysis': 'initial analysis was generated',

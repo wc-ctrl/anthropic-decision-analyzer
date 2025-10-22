@@ -54,7 +54,9 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
         <p className="text-sm text-gray-600 dark:text-gray-300">
           {mode.type === 'decision'
             ? 'Real-time analysis of decision consequences and their relationships'
-            : 'Dynamic exploration of causal pathways and their implications'
+            : mode.type === 'forecast'
+            ? 'Dynamic exploration of causal pathways and their implications'
+            : 'Probability-based scenario planning with signpost indicators'
           }
         </p>
       </div>

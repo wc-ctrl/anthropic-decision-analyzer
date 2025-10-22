@@ -15,7 +15,7 @@ import { RerunAnalysisButton } from './RerunAnalysisButton'
 import { DevilsAdvocateButton } from './DevilsAdvocateButton'
 import { DevilsAdvocateModal } from './DevilsAdvocateModal'
 import { ScenarioButton } from './ScenarioButton'
-import { ScenarioAnalysisModal } from './ScenarioAnalysisModal'
+import { ScenarioDisplayPanel } from './ScenarioDisplayPanel'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
@@ -38,9 +38,11 @@ export default function DecisionAnalyzer() {
     data: null as any,
     loading: false
   })
-  const [scenarioModal, setScenarioModal] = useState({
-    isOpen: false,
-    data: null as any,
+  const [scenarioData, setScenarioData] = useState<{
+    data: any | null
+    loading: boolean
+  }>({
+    data: null,
     loading: false
   })
   const { recalculateLayout } = useAutoLayout()
@@ -90,6 +92,7 @@ export default function DecisionAnalyzer() {
     setNodes([])
     setEdges([])
     setCommentary([])
+    setScenarioData({ data: null, loading: false })
   }
 
   const handleAutoLayout = () => {
@@ -300,9 +303,8 @@ export default function DecisionAnalyzer() {
   const handleScenarioAnalysis = async () => {
     if (!mode.rootInput) return
 
-    // Open modal with loading state
-    setScenarioModal({
-      isOpen: true,
+    // Set loading state
+    setScenarioData({
       data: null,
       loading: true
     })
@@ -348,18 +350,25 @@ export default function DecisionAnalyzer() {
         throw new Error('Failed to generate scenario analysis')
       }
 
-      const scenarioData = await response.json()
+      const scenarioAnalysis = await response.json()
 
-      setScenarioModal({
-        isOpen: true,
-        data: scenarioData,
+      setScenarioData({
+        data: scenarioAnalysis,
         loading: false
       })
 
+      // Generate commentary for scenario analysis
+      const scenarioCommentary = await generateCommentary({
+        nodes: [],
+        edges: [],
+        commentary: [],
+        mode: { type: 'scenario', rootInput: mode.rootInput }
+      }, 'initialAnalysis', [])
+      setCommentary([scenarioCommentary])
+
     } catch (error) {
       console.error('Error generating scenario analysis:', error)
-      setScenarioModal({
-        isOpen: true,
+      setScenarioData({
         data: {
           targetOutcome: mode.rootInput,
           tracks: [],
@@ -369,14 +378,6 @@ export default function DecisionAnalyzer() {
         loading: false
       })
     }
-  }
-
-  const handleCloseScenario = () => {
-    setScenarioModal({
-      isOpen: false,
-      data: null,
-      loading: false
-    })
   }
 
   const handleInputSubmit = async (input: string) => {
@@ -581,7 +582,7 @@ export default function DecisionAnalyzer() {
             {mode.type === 'scenario' && mode.rootInput ? (
               <ScenarioButton
                 onOpenScenario={handleScenarioAnalysis}
-                isGenerating={scenarioModal.loading}
+                isGenerating={scenarioData.loading}
                 hasAnalysis={mode.rootInput.length > 0}
                 disabled={false}
               />
@@ -611,7 +612,7 @@ export default function DecisionAnalyzer() {
                   isGenerating={isGeneratingDeepLayer}
                   currentMaxOrder={currentMaxOrder}
                   maxAllowedOrder={maxAllowedOrder}
-                  disabled={isGenerating || devilsAdvocateModal.loading || scenarioModal.loading}
+                  disabled={isGenerating || devilsAdvocateModal.loading || scenarioData.loading}
                 />
               </>
             ) : null}
@@ -621,23 +622,30 @@ export default function DecisionAnalyzer() {
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-120px)]">
-        {/* Graph Area */}
+        {/* Graph Area / Scenario Display */}
         <div className="flex-1">
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            onInit={setReactFlowInstance}
-            fitView
-            className="bg-gray-50 dark:bg-gray-900"
-          >
-            <Background />
-            <Controls />
-            <MiniMap />
-          </ReactFlow>
+          {mode.type === 'scenario' ? (
+            <ScenarioDisplayPanel
+              data={scenarioData.data}
+              loading={scenarioData.loading}
+            />
+          ) : (
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              onInit={setReactFlowInstance}
+              fitView
+              className="bg-gray-50 dark:bg-gray-900"
+            >
+              <Background />
+              <Controls />
+              <MiniMap />
+            </ReactFlow>
+          )}
         </div>
 
         {/* Commentary Panel */}
@@ -658,13 +666,6 @@ export default function DecisionAnalyzer() {
         loading={devilsAdvocateModal.loading}
       />
 
-      {/* Scenario Analysis Modal */}
-      <ScenarioAnalysisModal
-        isOpen={scenarioModal.isOpen}
-        onClose={handleCloseScenario}
-        data={scenarioModal.data}
-        loading={scenarioModal.loading}
-      />
     </div>
   )
 }
