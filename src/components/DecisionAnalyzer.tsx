@@ -578,7 +578,14 @@ export default function DecisionAnalyzer() {
               onSubmit={handleInputSubmit}
               isGenerating={isGenerating}
             />
-            {nodes.length > 0 && (
+            {mode.type === 'scenario' && mode.rootInput ? (
+              <ScenarioButton
+                onOpenScenario={handleScenarioAnalysis}
+                isGenerating={scenarioModal.loading}
+                hasAnalysis={mode.rootInput.length > 0}
+                disabled={false}
+              />
+            ) : nodes.length > 0 ? (
               <>
                 <RerunAnalysisButton
                   onRerun={handleRerunAnalysis}
@@ -606,14 +613,8 @@ export default function DecisionAnalyzer() {
                   maxAllowedOrder={maxAllowedOrder}
                   disabled={isGenerating || devilsAdvocateModal.loading || scenarioModal.loading}
                 />
-                <ScenarioButton
-                  onOpenScenario={handleScenarioAnalysis}
-                  isGenerating={scenarioModal.loading}
-                  hasAnalysis={mode.rootInput.length > 0}
-                  disabled={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading}
-                />
               </>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
