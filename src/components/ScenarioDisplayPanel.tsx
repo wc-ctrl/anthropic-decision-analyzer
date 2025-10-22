@@ -59,7 +59,7 @@ export function ScenarioDisplayPanel({ data, loading }: ScenarioDisplayPanelProp
   }
 
   return (
-    <div className="h-full overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
+    <div className="scenario-display-panel h-full overflow-auto p-6 bg-gray-50 dark:bg-gray-900">
       {/* Target Outcome Header */}
       <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <div className="flex items-center gap-3 mb-2">

@@ -16,7 +16,9 @@ import { DevilsAdvocateButton } from './DevilsAdvocateButton'
 import { DevilsAdvocateModal } from './DevilsAdvocateModal'
 import { ScenarioButton } from './ScenarioButton'
 import { ScenarioDisplayPanel } from './ScenarioDisplayPanel'
+import { ShareAnalysisButton } from './ShareAnalysisButton'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
+import { useScreenshot } from '@/hooks/useScreenshot'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
 import '@xyflow/react/dist/style.css'
 
@@ -33,6 +35,7 @@ export default function DecisionAnalyzer() {
   const [isGeneratingDeepLayer, setIsGeneratingDeepLayer] = useState(false)
   const [hasSlackData, setHasSlackData] = useState(false)
   const [hasGDriveData, setHasGDriveData] = useState(false)
+  const [isSharing, setIsSharing] = useState(false)
   const [devilsAdvocateModal, setDevilsAdvocateModal] = useState({
     isOpen: false,
     data: null as any,
@@ -46,6 +49,7 @@ export default function DecisionAnalyzer() {
     loading: false
   })
   const { recalculateLayout } = useAutoLayout()
+  const { captureReactFlow, captureScenarioPanel } = useScreenshot()
 
   // React Flow instance for programmatic control
   const [reactFlowInstance, setReactFlowInstance] = React.useState<any>(null)
@@ -380,6 +384,96 @@ export default function DecisionAnalyzer() {
     }
   }
 
+  const handleShareAnalysis = async () => {
+    if (!hasSlackData) {
+      alert('Please connect to Slack first using the "Connect Slack" button')
+      return
+    }
+
+    setIsSharing(true)
+
+    try {
+      // Capture screenshot based on analysis mode
+      let snapshot = null
+      if (mode.type === 'scenario') {
+        snapshot = await captureScenarioPanel()
+      } else if (nodes.length > 0) {
+        snapshot = await captureReactFlow()
+      }
+
+      // Prepare data for sharing
+      const shareData = {
+        analysisType: mode.type,
+        analysis: mode.type !== 'scenario' ? {
+          mode,
+          nodes,
+          edges,
+          commentary
+        } : undefined,
+        scenarioData: mode.type === 'scenario' ? scenarioData.data : undefined,
+        commentary,
+        snapshot
+      }
+
+      // Share to Slack
+      const response = await fetch('/api/share-slack', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shareData)
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to share to Slack')
+      }
+
+      const result = await response.json()
+
+      // Add success commentary
+      const shareCommentary: Commentary = {
+        id: `share-${Date.now()}`,
+        content: `**BOTTOM LINE UP FRONT (BLUF):** Analysis successfully shared to #mission-lab-chatter Slack channel.
+
+**KEY ACTIONS COMPLETED:**
+• Strategic analysis posted with visual snapshot to team channel
+• Full commentary and ${mode.type} insights shared with stakeholders
+• Team collaboration enabled for collective strategic input
+
+**RECOMMENDED ACTIONS:**
+• Monitor team responses and feedback in Slack channel
+• Incorporate team insights into final strategic recommendations`,
+        timestamp: new Date(),
+        triggeredBy: 'initialAnalysis',
+        relatedNodes: []
+      }
+      setCommentary(prev => [...prev, shareCommentary])
+
+    } catch (error) {
+      console.error('Error sharing analysis:', error)
+
+      // Add error commentary
+      const errorCommentary: Commentary = {
+        id: `share-error-${Date.now()}`,
+        content: `**BOTTOM LINE UP FRONT (BLUF):** Failed to share analysis to Slack channel.
+
+**ISSUE IDENTIFIED:**
+• Slack sharing encountered technical difficulties
+• Analysis remains available locally for manual sharing
+
+**RECOMMENDED ACTIONS:**
+• Verify Slack connection status and retry
+• Consider manual copy-paste of analysis to team channel`,
+        timestamp: new Date(),
+        triggeredBy: 'initialAnalysis',
+        relatedNodes: []
+      }
+      setCommentary(prev => [...prev, errorCommentary])
+    } finally {
+      setIsSharing(false)
+    }
+  }
+
   const handleInputSubmit = async (input: string) => {
     setIsGenerating(true)
     setMode(prev => ({ ...prev, rootInput: input }))
@@ -586,33 +680,41 @@ export default function DecisionAnalyzer() {
                 hasAnalysis={mode.rootInput.length > 0}
                 disabled={false}
               />
-            ) : nodes.length > 0 ? (
+            ) : (nodes.length > 0 || (mode.type === 'scenario' && scenarioData.data)) ? (
               <>
                 <RerunAnalysisButton
                   onRerun={handleRerunAnalysis}
                   isGenerating={isGenerating}
                   hasAnalysis={nodes.length > 0}
                   analysisType={mode.type}
-                  disabled={isGeneratingDeepLayer || devilsAdvocateModal.loading}
+                  disabled={isGeneratingDeepLayer || devilsAdvocateModal.loading || isSharing}
                 />
                 <DevilsAdvocateButton
                   onOpenDevilsAdvocate={handleDevilsAdvocate}
                   isGenerating={devilsAdvocateModal.loading}
                   hasAnalysis={nodes.length > 0}
                   analysisType={mode.type}
-                  disabled={isGenerating || isGeneratingDeepLayer}
+                  disabled={isGenerating || isGeneratingDeepLayer || isSharing}
+                />
+                <ShareAnalysisButton
+                  onShare={handleShareAnalysis}
+                  isSharing={isSharing}
+                  hasAnalysis={nodes.length > 0 || (mode.type === 'scenario' && !!scenarioData.data)}
+                  analysisType={mode.type}
+                  slackConnected={hasSlackData}
+                  disabled={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading}
                 />
                 <LayoutControls
                   onAutoLayout={handleAutoLayout}
                   onFitView={handleFitView}
-                  isGenerating={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading}
+                  isGenerating={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading || isSharing}
                 />
                 <DeepLayerButton
                   onGenerateDeepLayer={handleGenerateDeepLayer}
                   isGenerating={isGeneratingDeepLayer}
                   currentMaxOrder={currentMaxOrder}
                   maxAllowedOrder={maxAllowedOrder}
-                  disabled={isGenerating || devilsAdvocateModal.loading || scenarioData.loading}
+                  disabled={isGenerating || devilsAdvocateModal.loading || scenarioData.loading || isSharing}
                 />
               </>
             ) : null}
