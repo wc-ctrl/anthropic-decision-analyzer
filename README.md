@@ -1,6 +1,6 @@
-# Anthropic Decision Analysis Platform
+# Claudeswitz
 
-A sophisticated web application designed for executives and managers at Anthropic to make better decisions through interactive consequence analysis and forecast exploration.
+A sophisticated AI-powered decision analysis platform designed for executives and strategic planners to make better decisions through interactive consequence analysis and forecast exploration.
 
 ## Features
 

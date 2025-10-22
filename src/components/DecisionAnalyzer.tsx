@@ -247,7 +247,7 @@ export default function DecisionAnalyzer() {
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-start mb-4">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Anthropic Decision Analysis Platform
+              Claudeswitz
             </h1>
             <DarkModeToggle />
           </div>
