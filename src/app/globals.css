@@ -24,3 +24,54 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* React Flow dark mode styles */
+.dark .react-flow__background {
+  background: rgb(17 24 39);
+}
+
+.dark .react-flow__minimap {
+  background: rgb(31 41 55);
+}
+
+.dark .react-flow__controls {
+  background: rgb(31 41 55);
+  border: 1px solid rgb(55 65 81);
+}
+
+.dark .react-flow__controls button {
+  background: rgb(31 41 55);
+  color: white;
+  border-bottom: 1px solid rgb(55 65 81);
+}
+
+.dark .react-flow__controls button:hover {
+  background: rgb(55 65 81);
+}
+
+/* Handle styles for dark mode */
+.react-flow__handle {
+  background: rgb(156 163 175);
+  border: 2px solid rgb(156 163 175);
+}
+
+.dark .react-flow__handle {
+  background: rgb(75 85 99);
+  border: 2px solid rgb(75 85 99);
+}
+
+/* Edge styles for better visibility in dark mode */
+.dark .react-flow__edge-path {
+  stroke: rgb(156 163 175);
+}
+
+.dark .react-flow__edge.animated path {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+.dark .react-flow__edge.animated path {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+  stroke: rgb(59 130 246);
+}

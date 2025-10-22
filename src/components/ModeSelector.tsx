@@ -10,13 +10,13 @@ interface ModeSelectorProps {
 
 export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
   return (
-    <div className="flex bg-gray-100 rounded-lg p-1">
+    <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
       <button
         onClick={() => onModeChange('decision')}
         className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
           currentMode === 'decision'
-            ? 'bg-white text-blue-600 shadow-sm'
-            : 'text-gray-600 hover:text-gray-900'
+            ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
       >
         <GitBranch size={16} />
@@ -26,8 +26,8 @@ export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
         onClick={() => onModeChange('forecast')}
         className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
           currentMode === 'forecast'
-            ? 'bg-white text-green-600 shadow-sm'
-            : 'text-gray-600 hover:text-gray-900'
+            ? 'bg-white dark:bg-gray-800 text-green-600 dark:text-green-400 shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
         }`}
       >
         <TrendingUp size={16} />

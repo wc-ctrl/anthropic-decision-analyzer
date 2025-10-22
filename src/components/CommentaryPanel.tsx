@@ -47,11 +47,11 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b bg-gray-50">
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
           Live Commentary
         </h2>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
           {mode.type === 'decision'
             ? 'Real-time analysis of decision consequences and their relationships'
             : 'Dynamic exploration of causal pathways and their implications'
@@ -62,8 +62,8 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
       {/* Commentary Feed */}
       <div className="flex-1 overflow-y-auto">
         {commentary.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">
-            <MessageCircle size={48} className="mx-auto mb-3 text-gray-300" />
+          <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+            <MessageCircle size={48} className="mx-auto mb-3 text-gray-300 dark:text-gray-600" />
             <p className="text-sm">
               Commentary will appear here as you interact with the decision tree
             </p>
@@ -73,17 +73,17 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
             {commentary.map((comment) => (
               <div
                 key={comment.id}
-                className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm"
+                className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 shadow-sm"
               >
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     {getActionIcon(comment.triggeredBy)}
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
                       {getActionLabel(comment.triggeredBy)}
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                     <Clock size={12} />
                     {formatTime(comment.timestamp)}
                   </div>
@@ -92,7 +92,7 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
                 {/* Content */}
                 <div className="prose prose-sm max-w-none">
                   {comment.content.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="text-sm text-gray-700 leading-relaxed mb-3 last:mb-0">
+                    <p key={index} className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3 last:mb-0">
                       {paragraph}
                     </p>
                   ))}
@@ -100,8 +100,8 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
 
                 {/* Related Nodes Indicator */}
                 {comment.relatedNodes.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <div className="text-xs text-gray-500">
+                  <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       Analyzing {comment.relatedNodes.length} node{comment.relatedNodes.length !== 1 ? 's' : ''}
                     </div>
                   </div>
@@ -113,8 +113,8 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
       </div>
 
       {/* Footer Info */}
-      <div className="p-3 border-t bg-gray-50">
-        <p className="text-xs text-gray-500 text-center">
+      <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
           Commentary updates automatically as you modify the decision tree
         </p>
       </div>

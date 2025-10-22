@@ -57,17 +57,17 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
   }
 
   const getNodeStyles = () => {
-    const baseStyles = "min-w-[200px] max-w-[300px] rounded-lg border-2 shadow-md bg-white"
+    const baseStyles = "min-w-[200px] max-w-[300px] rounded-lg border-2 shadow-md bg-white dark:bg-gray-800"
 
     switch (data.order) {
       case 0: // Root node
-        return `${baseStyles} border-blue-500 bg-blue-50`
+        return `${baseStyles} border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20`
       case 1: // First order
-        return `${baseStyles} border-green-500 bg-green-50`
+        return `${baseStyles} border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-900/20`
       case 2: // Second order
-        return `${baseStyles} border-orange-500 bg-orange-50`
+        return `${baseStyles} border-orange-500 dark:border-orange-400 bg-orange-50 dark:bg-orange-900/20`
       default:
-        return `${baseStyles} border-gray-300`
+        return `${baseStyles} border-gray-300 dark:border-gray-600`
     }
   }
 
@@ -86,7 +86,7 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
       <div className="p-4">
         {/* Header with order indicator */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-500">
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
             {data.order === 0 ? 'Root' : `${data.order}${data.order === 1 ? 'st' : 'nd'} Order`}
           </span>
           <div className="flex gap-1">
@@ -94,14 +94,14 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
               <>
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-600 dark:text-gray-300"
                   title="Edit node"
                 >
                   <Edit3 size={12} />
                 </button>
                 <button
                   onClick={handleAddChild}
-                  className="p-1 hover:bg-gray-200 rounded transition-colors"
+                  className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors text-gray-600 dark:text-gray-300"
                   title="Add consequence"
                 >
                   <Plus size={12} />
@@ -109,7 +109,7 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
                 {data.order > 0 && (
                   <button
                     onClick={handleDelete}
-                    className="p-1 hover:bg-red-200 rounded transition-colors text-red-600"
+                    className="p-1 hover:bg-red-200 dark:hover:bg-red-900/30 rounded transition-colors text-red-600 dark:text-red-400"
                     title="Delete node"
                   >
                     <Trash2 size={12} />
@@ -121,14 +121,14 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
               <>
                 <button
                   onClick={handleSave}
-                  className="p-1 hover:bg-green-200 rounded transition-colors text-green-600"
+                  className="p-1 hover:bg-green-200 dark:hover:bg-green-900/30 rounded transition-colors text-green-600 dark:text-green-400"
                   title="Save changes"
                 >
                   <Check size={12} />
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="p-1 hover:bg-red-200 rounded transition-colors text-red-600"
+                  className="p-1 hover:bg-red-200 dark:hover:bg-red-900/30 rounded transition-colors text-red-600 dark:text-red-400"
                   title="Cancel"
                 >
                   <X size={12} />
@@ -150,24 +150,24 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
                 if (e.key === 'Enter') handleSave()
                 if (e.key === 'Escape') handleCancel()
               }}
-              className="w-full p-2 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               placeholder="Enter consequence or cause..."
             />
             <textarea
               value={editDescription}
               onChange={(e) => setEditDescription(e.target.value)}
               placeholder="Add description (optional)..."
-              className="w-full p-2 text-xs border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              className="w-full p-2 text-xs border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               rows={2}
             />
           </div>
         ) : (
           <div>
-            <div className="font-medium text-sm text-gray-900 leading-tight mb-1">
+            <div className="font-medium text-sm text-gray-900 dark:text-white leading-tight mb-1">
               {data.label}
             </div>
             {data.description && (
-              <div className="text-xs text-gray-600 leading-relaxed">
+              <div className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
                 {data.description}
               </div>
             )}
