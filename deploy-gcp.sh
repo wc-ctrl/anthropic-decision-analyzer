@@ -3,6 +3,19 @@
 # Claudeswitz Google Cloud Platform Deployment Script
 echo "🚀 Deploying Claudeswitz to Google Cloud Platform..."
 
+# Check environment variables
+if [ -z "$NEXT_PUBLIC_ANTHROPIC_API_KEY" ]; then
+    echo "❌ NEXT_PUBLIC_ANTHROPIC_API_KEY not set"
+    echo "🔑 Please set your Anthropic API key: export NEXT_PUBLIC_ANTHROPIC_API_KEY=your_key_here"
+    exit 1
+fi
+
+if [ -z "$NEXT_PUBLIC_GOOGLE_API_KEY" ]; then
+    echo "❌ NEXT_PUBLIC_GOOGLE_API_KEY not set"
+    echo "🔑 Please set your Google API key: export NEXT_PUBLIC_GOOGLE_API_KEY=your_key_here"
+    exit 1
+fi
+
 # Set project
 export CLOUDSDK_CORE_PROJECT=project-claudeswitz
 
