@@ -4,6 +4,7 @@ import React from 'react'
 import { Commentary, AnalysisMode, DecisionNode } from '@/types/decision'
 import { MessageCircle, Clock, Edit, Plus, Trash } from 'lucide-react'
 import { SentimentSummary } from './SentimentSummary'
+import { QuickAssessmentPanel } from './QuickAssessmentPanel'
 
 interface CommentaryPanelProps {
   commentary: Commentary[]
@@ -62,6 +63,13 @@ export function CommentaryPanel({ commentary, mode, nodes }: CommentaryPanelProp
           }
         </p>
       </div>
+
+      {/* Quick Assessment */}
+      {nodes && nodes.length > 1 && mode.type === 'decision' && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <QuickAssessmentPanel nodes={nodes} mode={mode} />
+        </div>
+      )}
 
       {/* Sentiment Summary */}
       {nodes && nodes.length > 1 && (
