@@ -12,8 +12,14 @@ export function useScreenshot() {
         return null
       }
 
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') {
+        console.error('Screenshot capture not available in server environment')
+        return null
+      }
+
       // Dynamic import for client-side only
-      const html2canvas = (await import('html2canvas')).default
+      const { default: html2canvas } = await import('html2canvas')
 
       const canvas = await html2canvas(element, {
         backgroundColor: null,
@@ -37,6 +43,12 @@ export function useScreenshot() {
 
   const captureReactFlow = useCallback(async (): Promise<string | null> => {
     try {
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') {
+        console.error('Screenshot capture not available in server environment')
+        return null
+      }
+
       // Capture the React Flow viewport
       const reactFlowElement = document.querySelector('.react-flow') as HTMLElement
       if (!reactFlowElement) {
@@ -45,7 +57,7 @@ export function useScreenshot() {
       }
 
       // Dynamic import for client-side only
-      const html2canvas = (await import('html2canvas')).default
+      const { default: html2canvas } = await import('html2canvas')
 
       const canvas = await html2canvas(reactFlowElement, {
         backgroundColor: '#f9fafb', // Light gray background
@@ -66,6 +78,12 @@ export function useScreenshot() {
 
   const captureScenarioPanel = useCallback(async (): Promise<string | null> => {
     try {
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') {
+        console.error('Screenshot capture not available in server environment')
+        return null
+      }
+
       // Capture the scenario display panel
       const scenarioElement = document.querySelector('.scenario-display-panel') as HTMLElement
       if (!scenarioElement) {
@@ -74,7 +92,7 @@ export function useScreenshot() {
       }
 
       // Dynamic import for client-side only
-      const html2canvas = (await import('html2canvas')).default
+      const { default: html2canvas } = await import('html2canvas')
 
       const canvas = await html2canvas(scenarioElement, {
         backgroundColor: '#f9fafb',

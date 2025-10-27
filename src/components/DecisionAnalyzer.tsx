@@ -430,10 +430,15 @@ export default function DecisionAnalyzer() {
     try {
       // Capture screenshot based on analysis mode
       let snapshot = null
-      if (mode.type === 'scenario') {
-        snapshot = await captureScenarioPanel()
-      } else if (nodes.length > 0) {
-        snapshot = await captureReactFlow()
+      try {
+        if (mode.type === 'scenario') {
+          snapshot = await captureScenarioPanel()
+        } else if (nodes.length > 0) {
+          snapshot = await captureReactFlow()
+        }
+      } catch (screenshotError) {
+        console.log('Screenshot capture failed, sharing without image:', screenshotError)
+        // Continue with sharing even if screenshot fails
       }
 
       // Prepare data for sharing
