@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
 
 async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2000,
     messages: [{
       role: 'user',
@@ -252,7 +252,7 @@ ANALYSIS VARIATION: This is a fresh analysis run. Explore different angles and a
 
 async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2000,
     messages: [{
       role: 'user',

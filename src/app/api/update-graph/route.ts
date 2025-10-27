@@ -65,7 +65,7 @@ async function handleNodeEdit(
   contextualData?: any
 ) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2500,
     messages: [{
       role: 'user',
@@ -160,7 +160,7 @@ async function handleNodeDelete(
   )
 
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2500,
     messages: [{
       role: 'user',
@@ -276,7 +276,7 @@ async function handleNodeAdd(
 ) {
   // Handle manual node additions with intelligent suggestions
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2000,
     messages: [{
       role: 'user',

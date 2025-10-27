@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
 async function generateTopicSuggestions(userContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2500,
     messages: [{
       role: 'user',
