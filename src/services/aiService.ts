@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { generateOptimizedTreeLayout } from '@/utils/layoutUtils'
 
 
-export async function generateConsequences(decision: string, useSlack: boolean = false, useGDrive: boolean = false, isExpertMode: boolean = true): Promise<DecisionAnalysis> {
+export async function generateConsequences(decision: string, useSlack: boolean = false, useGDrive: boolean = false, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2): Promise<DecisionAnalysis> {
   try {
     const response = await fetch('/api/analyze', {
       method: 'POST',
@@ -16,6 +16,8 @@ export async function generateConsequences(decision: string, useSlack: boolean =
         useSlack,
         useGDrive,
         isExpertMode,
+        firstOrderCount,
+        secondOrderCount,
         timestamp: Date.now() // Ensures fresh analysis each time
       })
     })

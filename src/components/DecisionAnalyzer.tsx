@@ -20,6 +20,7 @@ import { ShareAnalysisButton } from './ShareAnalysisButton'
 import { TopicSuggestionButton } from './TopicSuggestionButton'
 import { TopicSuggestionModal } from './TopicSuggestionModal'
 import { ModeComplexityToggle } from './ModeComplexityToggle'
+import { ExpertSettings } from './ExpertSettings'
 import { DrillDownModal } from './DrillDownModal'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { useScreenshot } from '@/hooks/useScreenshot'
@@ -41,6 +42,10 @@ export default function DecisionAnalyzer() {
   const [hasGDriveData, setHasGDriveData] = useState(false)
   const [isSharing, setIsSharing] = useState(false)
   const [isExpertMode, setIsExpertMode] = useState(true)
+  const [expertSettings, setExpertSettings] = useState({
+    firstOrderCount: 5,
+    secondOrderCount: 2
+  })
   const [devilsAdvocateModal, setDevilsAdvocateModal] = useState({
     isOpen: false,
     data: null as any,
@@ -661,9 +666,23 @@ ${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${fi
       // Generate consequences or causal pathways based on mode
       let analysis: DecisionAnalysis
       if (mode.type === 'decision') {
-        analysis = await generateConsequences(input, hasSlackData, hasGDriveData, isExpertMode)
+        analysis = await generateConsequences(
+          input,
+          hasSlackData,
+          hasGDriveData,
+          isExpertMode,
+          expertSettings.firstOrderCount,
+          expertSettings.secondOrderCount
+        )
       } else {
-        analysis = await generateCausalPathways(input, hasSlackData, hasGDriveData, isExpertMode)
+        analysis = await generateCausalPathways(
+          input,
+          hasSlackData,
+          hasGDriveData,
+          isExpertMode,
+          expertSettings.firstOrderCount,
+          expertSettings.secondOrderCount
+        )
       }
 
       // Update nodes and edges with generated analysis
@@ -909,6 +928,15 @@ ${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${fi
               onToggle={setIsExpertMode}
               disabled={isGenerating || isGeneratingDeepLayer || isSharing}
             />
+            {isExpertMode && (
+              <ExpertSettings
+                isExpertMode={isExpertMode}
+                firstOrderCount={expertSettings.firstOrderCount}
+                secondOrderCount={expertSettings.secondOrderCount}
+                onSettingsChange={(first, second) => setExpertSettings({ firstOrderCount: first, secondOrderCount: second })}
+                disabled={isGenerating || isGeneratingDeepLayer || isSharing}
+              />
+            )}
             <InputPanel
               mode={mode.type}
               onSubmit={handleInputSubmit}

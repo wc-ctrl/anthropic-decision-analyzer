@@ -11,7 +11,7 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { type, input, useSlack = true, useGDrive = true, timestamp, isExpertMode = true } = body
+    const { type, input, useSlack = true, useGDrive = true, timestamp, isExpertMode = true, firstOrderCount = 5, secondOrderCount = 2 } = body
 
     if (!process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY) {
       return NextResponse.json(
@@ -57,9 +57,9 @@ export async function POST(request: NextRequest) {
 
     let analysis
     if (type === 'decision') {
-      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds, isExpertMode)
+      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount)
     } else if (type === 'forecast') {
-      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds, isExpertMode)
+      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount)
     } else {
       return NextResponse.json(
         { error: 'Invalid analysis type' },
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true) {
+async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -121,8 +121,8 @@ Apply these frameworks to enhance the rigor and depth of your consequence analys
 
 ${isExpertMode ? `
 Generate a structured analysis with:
-1. EXACTLY 5 first-order consequences (direct results)
-2. For EACH of the 5 first-order consequences, EXACTLY 2 second-order consequences (consequences of consequences)
+1. EXACTLY ${firstOrderCount} first-order consequences (direct results)
+2. For EACH of the ${firstOrderCount} first-order consequences, EXACTLY ${secondOrderCount} second-order consequences (consequences of consequences)
 ` : `
 Generate a simplified analysis with:
 1. EXACTLY 3 first-order consequences (direct results)

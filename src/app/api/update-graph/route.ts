@@ -149,34 +149,119 @@ async function handleNodeDelete(
   isExpertMode: boolean,
   contextualData?: any
 ) {
-  // Similar structure to handleNodeEdit but focused on deletion impact
+  // Find child nodes that need to be handled
+  const childNodes = allNodes.filter(node =>
+    allEdges.some(edge => edge.source === targetNode.id && edge.target === node.id)
+  )
+
+  // Find parent nodes for potential reconnection
+  const parentNodes = allNodes.filter(node =>
+    allEdges.some(edge => edge.source === node.id && edge.target === targetNode.id)
+  )
+
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
-    max_tokens: 2000,
+    max_tokens: 2500,
     messages: [{
       role: 'user',
-      content: `You are an expert decision analyst specializing in graph coherence maintenance.
+      content: `You are an expert decision analyst specializing in intelligent tree restructuring.
 
-The user deleted: "${targetNode.data.label}" (Order ${targetNode.data.order})
+DELETION TARGET: "${targetNode.data.label}" (Order ${targetNode.data.order})
+Description: ${targetNode.data.description || 'No description'}
+Sentiment: ${targetNode.data.sentiment || 'neutral'}
 
-Analyze the remaining graph and suggest intelligent updates to maintain logical flow and fill gaps left by the deletion. Generate replacement nodes or modify existing ones to preserve analytical completeness.
+AFFECTED CHILD NODES (will be orphaned):
+${childNodes.map(node => `- ${node.data.label} (Order ${node.data.order})`).join('\n') || 'None'}
 
-Return the same JSON structure as node edit, focusing on gap-filling and logical consistency.`
+PARENT NODES (potential reconnection points):
+${parentNodes.map(node => `- ${node.data.label} (Order ${node.data.order})`).join('\n') || 'None'}
+
+REMAINING GRAPH STRUCTURE:
+${allNodes.filter(n => n.id !== targetNode.id).map(node => `- ${node.data.label} (Order ${node.data.order}): ${node.data.description || ''}`).join('\n')}
+
+${contextualData ? `
+ORGANIZATIONAL CONTEXT:
+${contextualData.slack ? contextualData.slack.map((msg: any) => `- Slack: ${msg.content}`).join('\n') : ''}
+${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- Doc: ${doc.excerpt}`).join('\n') : ''}
+` : ''}
+
+TASK: Intelligently restructure the decision tree after node deletion:
+
+1. **ELIMINATE**: Remove child chains that no longer make logical sense
+2. **RECONNECT**: Move orphaned children to appropriate new parents
+3. **REPLACE**: Generate new nodes to fill critical analytical gaps
+4. **REORGANIZE**: Ensure logical flow and strategic completeness
+
+Consider:
+- Which orphaned children should be eliminated vs reconnected?
+- Are there logical gaps that need filling with new nodes?
+- How do we maintain the analytical integrity of the ${analysisType} analysis?
+- What new connections would preserve strategic logic?
+
+Return ONLY valid JSON with this structure:
+{
+  "treeOperations": {
+    "eliminate": ["child-node-id-1", "child-node-id-2"],
+    "reconnect": [
+      {
+        "nodeId": "orphaned-node-id",
+        "newParentId": "new-parent-id",
+        "rationale": "Why this reconnection makes sense"
+      }
+    ],
+    "newNodes": [
+      {
+        "id": "replacement-node-1",
+        "data": {
+          "label": "New node title",
+          "description": "Description",
+          "order": 2,
+          "nodeType": "${analysisType === 'decision' ? 'consequence' : 'forecast'}",
+          "sentiment": "positive",
+          "probability": 75
+        },
+        "parentId": "parent-node-id",
+        "rationale": "Why this new node fills an important gap"
+      }
+    ]
+  },
+  "newEdges": [
+    {
+      "id": "new-edge-id",
+      "source": "source-id",
+      "target": "target-id",
+      "rationale": "Why this connection was created"
+    }
+  ],
+  "analysisRationale": "How the tree was intelligently restructured to maintain analytical integrity",
+  "strategicImplications": "What the restructuring means for the overall strategic analysis"
+}
+
+Focus on preserving analytical completeness while respecting the deletion intent.`
     }]
   })
 
   const responseText = message.content[0].type === 'text' ? message.content[0].text : ''
+  console.log('Raw deletion restructuring response:', responseText)
+
   let jsonMatch = responseText.match(/\{[\s\S]*\}/)
   const jsonText = jsonMatch ? jsonMatch[0] : responseText
 
   try {
     return JSON.parse(jsonText)
   } catch (error) {
+    console.error('JSON parsing failed for deletion restructuring:', error)
+
+    // Fallback: eliminate all children
     return {
-      updatedNodes: [],
+      treeOperations: {
+        eliminate: childNodes.map(n => n.id),
+        reconnect: [],
+        newNodes: []
+      },
       newEdges: [],
-      analysisRationale: "Graph maintained after node deletion",
-      strategicImplications: "Analysis structure preserved"
+      analysisRationale: "Basic deletion: removed node and all dependent children",
+      strategicImplications: "Tree structure simplified, some analytical depth lost"
     }
   }
 }
