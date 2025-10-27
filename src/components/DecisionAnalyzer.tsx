@@ -616,34 +616,106 @@ export default function DecisionAnalyzer() {
   }
 
   const handleNodeEditInternal = async (nodeId: string, newLabel: string, newDescription?: string) => {
-    // Update the node
+    // Update the target node first
+    const targetNode = nodes.find(n => n.id === nodeId)
+    if (!targetNode) return
+
+    const editedNode = {
+      ...targetNode,
+      data: {
+        ...targetNode.data,
+        label: newLabel,
+        description: newDescription,
+        isEditing: false
+      }
+    }
+
     const updatedNodes = nodes.map((node) =>
-      node.id === nodeId
-        ? {
-            ...node,
-            data: {
-              ...node.data,
-              label: newLabel,
-              description: newDescription,
-              isEditing: false
-            }
-          }
-        : node
+      node.id === nodeId ? editedNode : node
     )
 
-    // Recalculate layout to handle size changes
+    // Call intelligent graph update API
+    try {
+      const updateResponse = await fetch('/api/update-graph', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'edit',
+          targetNode: editedNode,
+          allNodes: updatedNodes,
+          allEdges: edges,
+          analysisType: mode.type,
+          isExpertMode
+        })
+      })
+
+      if (updateResponse.ok) {
+        const updateResult = await updateResponse.json()
+
+        // Apply intelligent updates if provided
+        if (updateResult.updatedNodes && updateResult.updatedNodes.length > 0) {
+          let finalNodes = [...updatedNodes]
+          let finalEdges = [...edges]
+
+          updateResult.updatedNodes.forEach((update: any) => {
+            if (update.action === 'modify') {
+              finalNodes = finalNodes.map(node =>
+                node.id === update.id
+                  ? { ...node, data: { ...node.data, ...update.data } }
+                  : node
+              )
+            } else if (update.action === 'add') {
+              const newNode: DecisionNode = {
+                id: update.id,
+                type: 'interactive',
+                data: update.data,
+                position: { x: 0, y: 0 }
+              }
+              finalNodes.push(newNode)
+            }
+          })
+
+          if (updateResult.newEdges) {
+            updateResult.newEdges.forEach((edge: any) => {
+              finalEdges.push({
+                id: edge.id,
+                source: edge.source,
+                target: edge.target,
+                type: 'smoothstep',
+                animated: true
+              })
+            })
+          }
+
+          recalculateLayout(finalNodes, setNodes, mode.type === 'forecast')
+          setEdges(finalEdges)
+
+          // Add intelligent update commentary
+          const intelligentCommentary = await generateCommentary({
+            nodes: finalNodes,
+            edges: finalEdges,
+            commentary,
+            mode
+          }, 'nodeEdit', [nodeId])
+          setCommentary(prev => [...prev, intelligentCommentary])
+
+          return
+        }
+      }
+    } catch (error) {
+      console.error('Intelligent update failed, using basic update:', error)
+    }
+
+    // Fallback to basic update
     recalculateLayout(updatedNodes, setNodes, mode.type === 'forecast')
 
-    // Generate updated commentary
     try {
-      const currentAnalysis: DecisionAnalysis = {
-        nodes,
+      const updatedCommentary = await generateCommentary({
+        nodes: updatedNodes,
         edges,
         commentary,
         mode
-      }
-
-      const updatedCommentary = await generateCommentary(currentAnalysis, 'nodeEdit', [nodeId])
+      }, 'nodeEdit', [nodeId])
       setCommentary(prev => [...prev, updatedCommentary])
     } catch (error) {
       console.error('Error generating commentary:', error)
