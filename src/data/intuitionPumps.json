@@ -1,0 +1,354 @@
+{
+  "intuitionPumps": [
+    {
+      "id": "second_order_effects",
+      "name": "Second-Order Effects Amplification",
+      "description": "What happens when the obvious consequences create unexpected reactions, feedback loops, or system-wide changes?",
+      "applicability": ["systemic_decisions", "market_changes", "organizational_shifts"],
+      "prompt": "Consider the second and third-order ripple effects that occur when your primary consequences trigger reactions from competitors, regulators, customers, or internal systems."
+    },
+    {
+      "id": "goodhart_law",
+      "name": "Goodhart's Law Perversion",
+      "description": "When a measure becomes a target, it ceases to be a good measure - how might optimization create perverse incentives?",
+      "applicability": ["metrics_driven_decisions", "performance_targets", "kpi_optimization"],
+      "prompt": "Examine how optimizing for the intended outcomes might create gaming, unintended behaviors, or metric manipulation that undermines the original goals."
+    },
+    {
+      "id": "cobra_effect",
+      "name": "Cobra Effect Scenarios",
+      "description": "Solutions that make the problem worse through perverse incentives - what could backfire spectacularly?",
+      "applicability": ["policy_decisions", "incentive_structures", "problem_solving"],
+      "prompt": "Identify how the solution might incentivize behaviors that exacerbate the original problem or create worse versions of it."
+    },
+    {
+      "id": "streisand_effect",
+      "name": "Streisand Effect Amplification",
+      "description": "Attempts to hide, remove, or censor information result in greater publicity - what might backfire through attention?",
+      "applicability": ["public_relations", "crisis_management", "information_control"],
+      "prompt": "Consider how attempts to control narrative, minimize risks, or prevent certain outcomes might amplify them through increased attention."
+    },
+    {
+      "id": "tail_risk_materialization",
+      "name": "Tail Risk Materialization",
+      "description": "Low-probability, high-impact events that everyone assumes won't happen - what if the 1% chance occurs?",
+      "applicability": ["risk_management", "strategic_planning", "crisis_preparation"],
+      "prompt": "Explore the scenarios where unlikely but catastrophic risks actually materialize and examine what that would mean for the decision."
+    },
+    {
+      "id": "network_effects_cascade",
+      "name": "Network Effects Cascade",
+      "description": "How might network effects, viral spread, or cascading failures create disproportionate outcomes?",
+      "applicability": ["technology_adoption", "social_media", "market_disruption"],
+      "prompt": "Analyze how network effects, viral mechanisms, or cascading adoption/failure could amplify outcomes far beyond linear expectations."
+    },
+    {
+      "id": "cultural_immune_response",
+      "name": "Cultural Immune Response",
+      "description": "Organizations and societies have immune systems that reject foreign changes - what cultural antibodies might emerge?",
+      "applicability": ["organizational_change", "cultural_shifts", "innovation_adoption"],
+      "prompt": "Identify how organizational or cultural immune systems might resist, subvert, or neutralize the intended changes."
+    },
+    {
+      "id": "time_arbitrage_exploitation",
+      "name": "Time Arbitrage Exploitation",
+      "description": "Different actors operating on different time horizons create opportunities for exploitation or manipulation.",
+      "applicability": ["market_timing", "regulatory_changes", "competitive_dynamics"],
+      "prompt": "Examine how differences in time horizons between stakeholders could create arbitrage opportunities or strategic vulnerabilities."
+    },
+    {
+      "id": "moloch_coordination_failure",
+      "name": "Moloch Coordination Failure",
+      "description": "Situations where individual rational behavior leads to collectively irrational outcomes.",
+      "applicability": ["multi_stakeholder_decisions", "competitive_markets", "collective_action"],
+      "prompt": "Analyze how rational individual responses to your decision might create collectively destructive outcomes or races to the bottom."
+    },
+    {
+      "id": "complexity_cascade",
+      "name": "Complexity Cascade Emergence",
+      "description": "Simple changes in complex systems can trigger emergent behaviors that no one predicted.",
+      "applicability": ["system_changes", "technology_implementation", "process_optimization"],
+      "prompt": "Consider how the decision might interact with system complexity to create emergent properties or behaviors that weren't anticipated."
+    },
+    {
+      "id": "narrative_warfare",
+      "name": "Narrative Warfare Dynamics",
+      "description": "How competing narratives might frame the decision and its outcomes in unexpected ways.",
+      "applicability": ["public_relations", "strategic_communication", "brand_decisions"],
+      "prompt": "Explore how different stakeholders might weaponize narratives around your decision to advance their own agendas."
+    },
+    {
+      "id": "black_swan_intersection",
+      "name": "Black Swan Intersection",
+      "description": "Multiple unlikely events intersecting to create highly improbable but impactful scenarios.",
+      "applicability": ["strategic_planning", "risk_assessment", "scenario_planning"],
+      "prompt": "Examine how multiple low-probability events might intersect with your decision to create extreme outlier scenarios."
+    },
+    {
+      "id": "regulatory_capture_reversal",
+      "name": "Regulatory Capture Reversal",
+      "description": "How might regulatory or institutional dynamics shift to create unexpected constraints or opportunities?",
+      "applicability": ["regulatory_decisions", "compliance_strategy", "government_relations"],
+      "prompt": "Consider how regulatory capture, institutional changes, or policy shifts might reverse current assumptions about constraints."
+    },
+    {
+      "id": "mimetic_contagion",
+      "name": "Mimetic Contagion Effects",
+      "description": "How might mimetic desire and social proof create unexpected adoption or rejection patterns?",
+      "applicability": ["product_launches", "cultural_trends", "behavioral_changes"],
+      "prompt": "Analyze how mimetic mechanisms and social proof might drive adoption or rejection in ways that defy rational predictions."
+    },
+    {
+      "id": "antifragility_paradox",
+      "name": "Antifragility Paradox",
+      "description": "How might attempts to reduce risk actually increase fragility, or how might apparent risks create antifragile benefits?",
+      "applicability": ["risk_mitigation", "resilience_building", "defensive_strategies"],
+      "prompt": "Examine how risk mitigation efforts might increase fragility, or how apparent risks might strengthen the system through antifragile mechanisms."
+    },
+    {
+      "id": "signal_noise_inversion",
+      "name": "Signal-Noise Inversion",
+      "description": "What appears to be noise might be signal, and what appears to be signal might be noise - reality inversion scenarios.",
+      "applicability": ["data_interpretation", "market_analysis", "trend_identification"],
+      "prompt": "Consider scenarios where current signal-noise classifications are inverted - weak signals becoming dominant and strong signals proving illusory."
+    },
+    {
+      "id": "temporal_arbitrage_disruption",
+      "name": "Temporal Arbitrage Disruption",
+      "description": "How might changes in time perception, urgency, or temporal dynamics disrupt expected timelines?",
+      "applicability": ["project_timelines", "market_timing", "strategic_windows"],
+      "prompt": "Analyze how shifts in temporal dynamics, urgency perception, or time arbitrage might accelerate or disrupt expected sequences."
+    },
+    {
+      "id": "value_system_shift",
+      "name": "Value System Shift",
+      "description": "How might fundamental changes in value systems reframe the entire decision context?",
+      "applicability": ["cultural_decisions", "generational_changes", "ethical_considerations"],
+      "prompt": "Explore how evolving value systems, generational shifts, or ethical frameworks might completely recontextualize the decision."
+    },
+    {
+      "id": "technological_leapfrog",
+      "name": "Technological Leapfrog Disruption",
+      "description": "How might technological breakthroughs render current assumptions obsolete or create unexpected opportunities?",
+      "applicability": ["technology_strategy", "innovation_decisions", "digital_transformation"],
+      "prompt": "Consider how technological leapfrogs or breakthrough innovations might disrupt the fundamental premises underlying your decision."
+    },
+    {
+      "id": "social_proof_cascade",
+      "name": "Social Proof Cascade Reversal",
+      "description": "How might social proof mechanisms create sudden reversals in adoption, opinion, or behavior?",
+      "applicability": ["adoption_strategies", "reputation_management", "trend_following"],
+      "prompt": "Examine how social proof cascades might suddenly reverse, creating rapid shifts from acceptance to rejection or vice versa."
+    },
+    {
+      "id": "asymmetric_information_exploitation",
+      "name": "Asymmetric Information Exploitation",
+      "description": "How might information asymmetries be exploited by various actors to subvert intended outcomes?",
+      "applicability": ["information_strategy", "competitive_intelligence", "transparency_decisions"],
+      "prompt": "Analyze how different stakeholders might exploit information asymmetries to manipulate outcomes in unexpected directions."
+    },
+    {
+      "id": "emergence_threshold_crossing",
+      "name": "Emergence Threshold Crossing",
+      "description": "How might the decision push a system past critical thresholds where new properties emerge?",
+      "applicability": ["system_changes", "scaling_decisions", "threshold_effects"],
+      "prompt": "Consider how the decision might trigger threshold effects or phase transitions that create qualitatively new system behaviors."
+    },
+    {
+      "id": "recursive_improvement_spiral",
+      "name": "Recursive Improvement Spiral",
+      "description": "How might the decision trigger self-reinforcing cycles that accelerate beyond expectations?",
+      "applicability": ["capability_building", "learning_systems", "improvement_processes"],
+      "prompt": "Explore how recursive feedback loops might create exponential improvement or degradation cycles beyond linear projections."
+    },
+    {
+      "id": "demographic_discontinuity",
+      "name": "Demographic Discontinuity",
+      "description": "How might demographic shifts, generational changes, or population dynamics create unexpected impacts?",
+      "applicability": ["market_strategy", "workforce_planning", "long_term_planning"],
+      "prompt": "Examine how demographic discontinuities or generational value shifts might disrupt expected patterns of adoption or response."
+    },
+    {
+      "id": "geopolitical_realignment",
+      "name": "Geopolitical Realignment",
+      "description": "How might shifts in global power structures, alliances, or trade relationships affect the decision?",
+      "applicability": ["global_strategy", "supply_chain", "international_business"],
+      "prompt": "Consider how geopolitical realignments, trade disruptions, or shifting international relationships might impact outcomes."
+    },
+    {
+      "id": "memetic_evolution",
+      "name": "Memetic Evolution Pressure",
+      "description": "How might ideas, concepts, or cultural memes evolve in response to the decision in unexpected ways?",
+      "applicability": ["cultural_strategy", "brand_positioning", "idea_propagation"],
+      "prompt": "Analyze how memes, ideas, or cultural concepts might evolve and mutate in response to your decision in unexpected directions."
+    },
+    {
+      "id": "principal_agent_misalignment",
+      "name": "Principal-Agent Misalignment",
+      "description": "How might misaligned incentives between decision-makers and implementers create unexpected outcomes?",
+      "applicability": ["organizational_decisions", "delegation", "implementation_strategy"],
+      "prompt": "Examine how principal-agent problems might cause implementers to subvert, game, or redirect the intended outcomes."
+    },
+    {
+      "id": "information_cascade_reversal",
+      "name": "Information Cascade Reversal",
+      "description": "How might information cascades suddenly reverse when new information challenges the consensus?",
+      "applicability": ["consensus_decisions", "market_following", "trend_analysis"],
+      "prompt": "Consider how information cascades supporting current assumptions might suddenly reverse with new information or revelations."
+    },
+    {
+      "id": "survivorship_bias_revelation",
+      "name": "Survivorship Bias Revelation",
+      "description": "What if we're only seeing the survivors and missing critical failure modes or alternative paths?",
+      "applicability": ["benchmarking", "best_practice_adoption", "success_replication"],
+      "prompt": "Explore how survivorship bias might be masking important failure modes or alternative approaches that could affect outcomes."
+    },
+    {
+      "id": "hysteresis_path_dependence",
+      "name": "Hysteresis Path Dependence",
+      "description": "How might historical path dependence and irreversible changes affect future options differently than expected?",
+      "applicability": ["irreversible_decisions", "path_dependent_strategies", "legacy_systems"],
+      "prompt": "Examine how path dependence and hysteresis effects might create lock-in effects or irreversible changes that constrain future options."
+    },
+    {
+      "id": "reflexivity_feedback",
+      "name": "Reflexivity Feedback Loops",
+      "description": "How might awareness of the analysis itself change behavior in ways that invalidate the analysis?",
+      "applicability": ["public_strategies", "transparent_decisions", "prediction_markets"],
+      "prompt": "Consider how the decision analysis becoming known might change stakeholder behavior in ways that make the analysis self-defeating."
+    },
+    {
+      "id": "extremistan_dynamics",
+      "name": "Extremistan Dynamics",
+      "description": "What if this decision operates in Extremistan rather than Mediocristan - where outliers dominate outcomes?",
+      "applicability": ["scalable_businesses", "network_effects", "winner_take_all"],
+      "prompt": "Analyze whether the decision operates in domains where extreme outcomes dominate and normal distributions don't apply."
+    },
+    {
+      "id": "edge_case_generalization",
+      "name": "Edge Case Generalization",
+      "description": "What if edge cases become the norm or exceptions prove the rule wrong?",
+      "applicability": ["policy_implementation", "system_design", "exception_handling"],
+      "prompt": "Explore how edge cases, exceptions, or outliers might become more common than expected and dominate outcomes."
+    },
+    {
+      "id": "opportunity_cost_revelation",
+      "name": "Opportunity Cost Revelation",
+      "description": "What extraordinary opportunities might be foreclosed by this decision that aren't immediately obvious?",
+      "applicability": ["resource_allocation", "strategic_choices", "investment_decisions"],
+      "prompt": "Examine what exceptional opportunities might be lost or prevented by committing to this particular decision path."
+    },
+    {
+      "id": "unknown_unknown_manifestation",
+      "name": "Unknown Unknown Manifestation",
+      "description": "What don't we know that we don't know? What blind spots might contain game-changing factors?",
+      "applicability": ["novel_situations", "innovation_decisions", "uncharted_territories"],
+      "prompt": "Identify potential unknown unknowns - factors, stakeholders, or dynamics that aren't even on the analytical radar."
+    },
+    {
+      "id": "multi_level_selection",
+      "name": "Multi-Level Selection Pressure",
+      "description": "How might selection pressures at different levels (individual, group, institutional) create conflicting dynamics?",
+      "applicability": ["evolutionary_strategies", "competitive_dynamics", "survival_analysis"],
+      "prompt": "Analyze how selection pressures at different organizational or competitive levels might create tensions or unexpected survival patterns."
+    },
+    {
+      "id": "punctuated_equilibrium",
+      "name": "Punctuated Equilibrium Shifts",
+      "description": "What if change happens in sudden bursts rather than gradual progression?",
+      "applicability": ["transformation_strategies", "market_evolution", "technological_change"],
+      "prompt": "Consider how sudden, discontinuous changes might disrupt assumptions about gradual implementation or evolution."
+    },
+    {
+      "id": "power_law_distribution",
+      "name": "Power Law Distribution Effects",
+      "description": "What if outcomes follow power law rather than normal distributions - where a few cases dominate everything?",
+      "applicability": ["scalable_decisions", "viral_potential", "winner_take_all_markets"],
+      "prompt": "Examine whether outcomes might follow power law distributions where a small number of extreme cases dominate all results."
+    },
+    {
+      "id": "meta_level_considerations",
+      "name": "Meta-Level Considerations",
+      "description": "How might the decision affect the decision-making process itself or the organization's capability to make future decisions?",
+      "applicability": ["organizational_capability", "decision_infrastructure", "learning_systems"],
+      "prompt": "Consider how the decision might change the organization's decision-making capabilities, processes, or future strategic options."
+    },
+    {
+      "id": "strange_attractor_dynamics",
+      "name": "Strange Attractor Dynamics",
+      "description": "How might the system be pulled toward unexpected stable states or chaotic attractors?",
+      "applicability": ["system_dynamics", "organizational_behavior", "market_equilibria"],
+      "prompt": "Analyze whether the decision might push the system toward strange attractors or unexpected equilibrium states."
+    },
+    {
+      "id": "observer_effect_distortion",
+      "name": "Observer Effect Distortion",
+      "description": "How might the act of analysis, measurement, or observation change the system being analyzed?",
+      "applicability": ["measurement_systems", "monitoring_strategies", "performance_tracking"],
+      "prompt": "Examine how the analytical process itself might alter stakeholder behavior or system dynamics in unexpected ways."
+    },
+    {
+      "id": "creative_destruction_acceleration",
+      "name": "Creative Destruction Acceleration",
+      "description": "How might the decision accelerate creative destruction in unexpected industries or areas?",
+      "applicability": ["innovation_strategy", "disruption_analysis", "market_transformation"],
+      "prompt": "Consider how the decision might trigger creative destruction in adjacent industries or unexpected domains."
+    },
+    {
+      "id": "institutional_capture_reversal",
+      "name": "Institutional Capture Reversal",
+      "description": "What if institutions assumed to be captured or controlled assert unexpected independence?",
+      "applicability": ["regulatory_strategy", "institutional_relations", "political_economy"],
+      "prompt": "Explore scenarios where captured institutions, assumed allies, or controlled entities assert unexpected independence."
+    },
+    {
+      "id": "paradigm_shift_catalyst",
+      "name": "Paradigm Shift Catalyst",
+      "description": "How might the decision serve as a catalyst for broader paradigm shifts in thinking or practice?",
+      "applicability": ["thought_leadership", "industry_transformation", "cultural_change"],
+      "prompt": "Analyze whether the decision might catalyze broader paradigm shifts that transform entire industries or ways of thinking."
+    },
+    {
+      "id": "entropy_acceleration",
+      "name": "Entropy Acceleration",
+      "description": "How might the decision accelerate organizational or system entropy in unexpected ways?",
+      "applicability": ["organizational_health", "system_maintenance", "complexity_management"],
+      "prompt": "Consider how the decision might accelerate entropy, complexity, or degradation in organizational or system performance."
+    },
+    {
+      "id": "quantum_measurement_collapse",
+      "name": "Quantum Measurement Collapse",
+      "description": "How might making the decision collapse other potential futures or options in unexpected ways?",
+      "applicability": ["strategic_options", "flexibility_preservation", "commitment_strategies"],
+      "prompt": "Examine how committing to this decision might collapse quantum superpositions of strategic options in unexpected ways."
+    },
+    {
+      "id": "inverse_correlation_surprise",
+      "name": "Inverse Correlation Surprise",
+      "description": "What if relationships assumed to be positively correlated are actually inversely correlated?",
+      "applicability": ["causal_assumptions", "correlation_analysis", "systems_thinking"],
+      "prompt": "Challenge assumptions about positive correlations - what if key relationships work in reverse of expectations?"
+    },
+    {
+      "id": "emergence_suppression",
+      "name": "Emergence Suppression",
+      "description": "How might the decision prevent or suppress emergent properties that would otherwise develop naturally?",
+      "applicability": ["innovation_management", "organic_growth", "natural_evolution"],
+      "prompt": "Consider what emergent capabilities, innovations, or developments might be suppressed or prevented by this decision."
+    },
+    {
+      "id": "distributed_cognition_effects",
+      "name": "Distributed Cognition Effects",
+      "description": "How might the decision affect distributed intelligence and collective cognition in unexpected ways?",
+      "applicability": ["knowledge_management", "collective_intelligence", "organizational_learning"],
+      "prompt": "Analyze how the decision might enhance or degrade distributed cognition and collective intelligence capabilities."
+    },
+    {
+      "id": "game_theoretic_equilibrium_shift",
+      "name": "Game Theoretic Equilibrium Shift",
+      "description": "How might the decision change the game being played and shift equilibria in unexpected directions?",
+      "applicability": ["competitive_strategy", "negotiation", "multi_party_dynamics"],
+      "prompt": "Examine how the decision might change the fundamental game structure and create new Nash equilibria."
+    }
+  ]
+}

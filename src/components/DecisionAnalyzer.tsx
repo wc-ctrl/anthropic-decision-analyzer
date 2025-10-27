@@ -21,6 +21,8 @@ import { TopicSuggestionButton } from './TopicSuggestionButton'
 import { TopicSuggestionModal } from './TopicSuggestionModal'
 import { ModeComplexityToggle } from './ModeComplexityToggle'
 import { ExpertSettings } from './ExpertSettings'
+import { GetWeirdButton } from './GetWeirdButton'
+import { WeirdAnalysisModal } from './WeirdAnalysisModal'
 import { DrillDownModal } from './DrillDownModal'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { useScreenshot } from '@/hooks/useScreenshot'
@@ -66,6 +68,11 @@ export default function DecisionAnalyzer() {
   const [drillDownModal, setDrillDownModal] = useState({
     isOpen: false,
     focusNode: null as DecisionNode | null
+  })
+  const [weirdAnalysisModal, setWeirdAnalysisModal] = useState({
+    isOpen: false,
+    data: null as any,
+    loading: false
   })
   const { recalculateLayout } = useAutoLayout()
   const { captureReactFlow, captureScenarioPanel } = useScreenshot()
@@ -647,6 +654,143 @@ ${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${fi
     })
   }
 
+  const handleGetWeird = async () => {
+    if (!mode.rootInput || nodes.length <= 1) return
+
+    setWeirdAnalysisModal({
+      isOpen: true,
+      data: null,
+      loading: true
+    })
+
+    try {
+      // Get web context for enhanced weird analysis
+      let webContext = null
+      try {
+        const webResponse = await fetch('/api/web-enhanced-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: mode.rootInput,
+            analysisType: mode.type,
+            isNonUSFocused: false
+          })
+        })
+        if (webResponse.ok) {
+          webContext = await webResponse.json()
+        }
+      } catch (error) {
+        console.log('Web context failed for weird analysis:', error)
+      }
+
+      // Generate weird analysis
+      const response = await fetch('/api/get-weird', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          input: mode.rootInput,
+          analysisType: mode.type,
+          existingNodes: nodes,
+          isExpertMode,
+          webContext
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate weird analysis')
+      }
+
+      const weirdData = await response.json()
+
+      setWeirdAnalysisModal({
+        isOpen: true,
+        data: weirdData,
+        loading: false
+      })
+
+    } catch (error) {
+      console.error('Error generating weird analysis:', error)
+      setWeirdAnalysisModal({
+        isOpen: true,
+        data: {
+          weirdNodes: [],
+          weirdnessRationale: 'Failed to generate unconventional analysis',
+          diagnosticValue: 'Try again later',
+          probabilityJustification: 'Analysis generation encountered an error'
+        },
+        loading: false
+      })
+    }
+  }
+
+  const handleAddWeirdNodes = async (weirdNodes: any[]) => {
+    // Add weird nodes to the main decision tree
+    const newNodes: DecisionNode[] = weirdNodes.map((weird, index) => ({
+      id: `weird-${Date.now()}-${index}`,
+      type: 'interactive',
+      data: {
+        ...weird.data,
+        isWeird: true
+      },
+      position: { x: 0, y: 0 }
+    }))
+
+    // Create edges connecting weird nodes to appropriate parents
+    const newEdges: DecisionEdge[] = []
+    const rootNode = nodes.find(n => n.data.order === 0)
+    if (rootNode) {
+      newNodes.forEach(node => {
+        newEdges.push({
+          id: `edge-weird-${node.id}`,
+          source: rootNode.id,
+          target: node.id,
+          type: 'smoothstep',
+          animated: true,
+          style: { stroke: '#8b5cf6', strokeWidth: 2, strokeDasharray: '5,5' }
+        })
+      })
+    }
+
+    const updatedNodes = [...nodes, ...newNodes]
+    const updatedEdges = [...edges, ...newEdges]
+
+    recalculateLayout(updatedNodes, setNodes, mode.type === 'forecast')
+    setEdges(updatedEdges)
+
+    // Add weird analysis commentary
+    const weirdCommentary: Commentary = {
+      id: `weird-${Date.now()}`,
+      content: `**BOTTOM LINE UP FRONT (BLUF):** Unconventional analysis reveals overlooked possibilities with diagnostic value.
+
+**WEIRD INSIGHTS ADDED:**
+${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`).join('\n')}
+
+**STRATEGIC VALUE:**
+• Cognitive intuition pumps surface blind spots in conventional analysis
+• Low-probability scenarios provide early warning diagnostic signals
+• Unconventional thinking reveals strategic possibilities others might miss
+
+**RECOMMENDED ACTIONS:**
+• Monitor diagnostic signals for early detection of weird scenarios
+• Consider mitigation strategies for unconventional negative outcomes
+• Explore opportunities in overlooked but plausible scenarios`,
+      timestamp: new Date(),
+      triggeredBy: 'nodeAdd',
+      relatedNodes: newNodes.map(n => n.id)
+    }
+    setCommentary(prev => [...prev, weirdCommentary])
+  }
+
+  const handleCloseWeird = () => {
+    setWeirdAnalysisModal({
+      isOpen: false,
+      data: null,
+      loading: false
+    })
+  }
+
   const handleInputSubmit = async (input: string) => {
     setIsGenerating(true)
     setMode(prev => ({ ...prev, rootInput: input }))
@@ -975,6 +1119,12 @@ ${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${fi
                   analysisType={mode.type}
                   disabled={isGenerating || isGeneratingDeepLayer || isSharing}
                 />
+                <GetWeirdButton
+                  onGetWeird={handleGetWeird}
+                  isGenerating={weirdAnalysisModal.loading}
+                  hasAnalysis={nodes.length > 1}
+                  disabled={isGenerating || isGeneratingDeepLayer || isSharing}
+                />
                 <ShareAnalysisButton
                   onShare={handleShareAnalysis}
                   isSharing={isSharing}
@@ -1070,6 +1220,16 @@ ${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${fi
           isExpertMode={isExpertMode}
         />
       )}
+
+      {/* Weird Analysis Modal */}
+      <WeirdAnalysisModal
+        isOpen={weirdAnalysisModal.isOpen}
+        onClose={handleCloseWeird}
+        onAddWeirdNodes={handleAddWeirdNodes}
+        data={weirdAnalysisModal.data}
+        loading={weirdAnalysisModal.loading}
+        analysisType={mode.type}
+      />
 
     </div>
   )
