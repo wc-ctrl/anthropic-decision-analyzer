@@ -45,7 +45,7 @@ echo "☁️ Deploying to Google Cloud Run..."
     --cpu=2 \
     --min-instances=0 \
     --max-instances=10 \
-    --set-env-vars="NEXT_PUBLIC_ANTHROPIC_API_KEY=<ANTHROPIC_API_KEY>,NEXT_PUBLIC_GOOGLE_API_KEY=<GOOGLE_API_KEY>"
+    --set-env-vars="NEXT_PUBLIC_ANTHROPIC_API_KEY=${NEXT_PUBLIC_ANTHROPIC_API_KEY},NEXT_PUBLIC_GOOGLE_API_KEY=${NEXT_PUBLIC_GOOGLE_API_KEY}"
 
 echo ""
 echo "🎉 Deployment complete!"
