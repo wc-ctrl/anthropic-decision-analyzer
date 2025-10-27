@@ -26,8 +26,75 @@ export interface DecisionEdge {
 }
 
 export interface AnalysisMode {
-  type: 'decision' | 'forecast' | 'scenario'
+  type: 'decision' | 'forecast' | 'scenario' | 'strategy'
   rootInput: string
+}
+
+export interface StrategyFramework {
+  ends: {
+    objectives: Array<{
+      objective: string
+      specificity: string
+      metrics: string[]
+      timeframe: string
+      achievability: 'under-scoped' | 'appropriate' | 'over-scoped'
+    }>
+    internalConsistency: string
+    hiddenObjectives: string[]
+    failureModes: string[]
+  }
+  ways: {
+    approaches: Array<{
+      approach: string
+      causalLogic: string
+      executionRisk: 'low' | 'medium' | 'high'
+      resourceIntensity: 'low' | 'medium' | 'high'
+      novelty: 'orthodox' | 'innovative' | 'unproven'
+    }>
+    alternatives: string[]
+    integration: string
+    adversaryConsiderations: string[]
+  }
+  means: {
+    resources: Array<{
+      resource: string
+      sufficiency: 'adequate' | 'insufficient' | 'excessive'
+      readiness: 'immediate' | 'short-term' | 'long-term'
+      fungibility: 'high' | 'medium' | 'low'
+      dependencies: string[]
+    }>
+    capabilityGaps: string[]
+    hiddenCosts: string[]
+    concentrationRisks: string[]
+  }
+  risks: {
+    riskFactors: Array<{
+      risk: string
+      category: 'execution' | 'environmental' | 'adversary' | 'second-order'
+      probability: number
+      impact: 'low' | 'medium' | 'high'
+      mitigation: string
+      earlyWarning: string[]
+    }>
+    interconnectedRisks: string[]
+    underestimatedRisk: string
+  }
+  assumptions: {
+    criticalAssumptions: Array<{
+      assumption: string
+      testability: 'high' | 'medium' | 'low'
+      fragility: 'robust' | 'moderate' | 'fragile'
+      monitoring: string[]
+    }>
+    contradictions: string[]
+    vulnerabilities: string
+  }
+  integration: {
+    criticalPath: string
+    theoryOfVictory: string
+    topVulnerabilities: string[]
+    stressTestScenarios: string[]
+  }
 }
 
 export interface ScenarioSignpost {

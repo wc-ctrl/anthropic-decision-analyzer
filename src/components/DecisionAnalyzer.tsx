@@ -24,6 +24,7 @@ import { ExpertSettings } from './ExpertSettings'
 import { GetWeirdButton } from './GetWeirdButton'
 import { WeirdAnalysisModal } from './WeirdAnalysisModal'
 import { DrillDownModal } from './DrillDownModal'
+import { StrategyDisplayPanel } from './StrategyDisplayPanel'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { useScreenshot } from '@/hooks/useScreenshot'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
@@ -54,6 +55,13 @@ export default function DecisionAnalyzer() {
     loading: false
   })
   const [scenarioData, setScenarioData] = useState<{
+    data: any | null
+    loading: boolean
+  }>({
+    data: null,
+    loading: false
+  })
+  const [strategyData, setStrategyData] = useState<{
     data: any | null
     loading: boolean
   }>({
@@ -133,12 +141,13 @@ export default function DecisionAnalyzer() {
     setEdges((eds) => addEdge(edge, eds) as DecisionEdge[])
   }, [setEdges])
 
-  const handleModeChange = (newMode: 'decision' | 'forecast' | 'scenario') => {
+  const handleModeChange = (newMode: 'decision' | 'forecast' | 'scenario' | 'strategy') => {
     setMode({ type: newMode, rootInput: '' })
     setNodes([])
     setEdges([])
     setCommentary([])
     setScenarioData({ data: null, loading: false })
+    setStrategyData({ data: null, loading: false })
   }
 
   const handleAutoLayout = () => {
@@ -783,6 +792,108 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
     setCommentary(prev => [...prev, weirdCommentary])
   }
 
+  const generateStrategyFramework = async (input: string) => {
+    setStrategyData({ data: null, loading: true })
+
+    try {
+      // Get web context for strategy development
+      let webContext = null
+      try {
+        const webResponse = await fetch('/api/web-enhanced-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input,
+            analysisType: 'strategy',
+            isNonUSFocused: false
+          })
+        })
+        if (webResponse.ok) {
+          webContext = await webResponse.json()
+        }
+      } catch (error) {
+        console.log('Web context failed for strategy:', error)
+      }
+
+      // Gather prior analysis if available from previous modes
+      const priorAnalysis = {
+        decision: nodes.length > 0 ? { summary: `${nodes.length} consequences analyzed` } : null,
+        scenario: scenarioData.data ? { summary: 'Scenario analysis available' } : null
+      }
+
+      const response = await fetch('/api/strategy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input,
+          priorAnalysis,
+          contextualData: hasSlackData || hasGDriveData ? await getMcpContext(input) : null,
+          webContext
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to generate strategy framework')
+      }
+
+      const strategy = await response.json()
+
+      setStrategyData({ data: strategy, loading: false })
+
+      // Generate strategy commentary
+      const strategyCommentary: Commentary = {
+        id: `strategy-${Date.now()}`,
+        content: `**BOTTOM LINE UP FRONT (BLUF):** Comprehensive strategic framework developed with Ends-Ways-Means analysis.
+
+**STRATEGIC FRAMEWORK GENERATED:**
+• Ends: ${strategy.ends?.objectives?.length || 0} strategic objectives with success metrics
+• Ways: ${strategy.ways?.approaches?.length || 0} strategic approaches evaluated
+• Means: ${strategy.means?.resources?.length || 0} resource requirements analyzed
+• Risks: ${strategy.risks?.riskFactors?.length || 0} risk factors with mitigation strategies
+
+**KEY INSIGHTS:**
+• Theory of Victory: ${strategy.integration?.theoryOfVictory?.substring(0, 100) || 'Strategic logic established'}...
+• Critical Path: ${strategy.integration?.criticalPath?.substring(0, 100) || 'Dependencies identified'}...
+
+**RECOMMENDED ACTIONS:**
+• Review measurement criteria for tracking strategic progress
+• Monitor critical assumptions and early warning indicators
+• Prepare mitigation strategies for identified vulnerabilities`,
+        timestamp: new Date(),
+        triggeredBy: 'initialAnalysis',
+        relatedNodes: []
+      }
+      setCommentary([strategyCommentary])
+
+    } catch (error) {
+      console.error('Error generating strategy:', error)
+      setStrategyData({ data: null, loading: false })
+    }
+  }
+
+  const getMcpContext = async (query: string) => {
+    try {
+      const response = await fetch('/api/mcp/get-context', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          sources: [
+            ...(hasSlackData ? ['slack'] : []),
+            ...(hasGDriveData ? ['gdrive'] : [])
+          ]
+        })
+      })
+      if (response.ok) {
+        const result = await response.json()
+        return result.context
+      }
+    } catch (error) {
+      console.log('MCP context retrieval failed:', error)
+    }
+    return null
+  }
+
   const handleCloseWeird = () => {
     setWeirdAnalysisModal({
       isOpen: false,
@@ -811,10 +922,17 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
       setNodes([rootNode])
       setEdges([])
 
-      // For scenario mode, we don't generate node trees - scenarios are handled separately
+      // For scenario and strategy modes, we don't generate node trees
       if (mode.type === 'scenario') {
         setIsGenerating(false)
-        return // Scenario analysis uses the modal system, not node trees
+        return // Scenario analysis uses the display system, not node trees
+      }
+
+      if (mode.type === 'strategy') {
+        // Generate strategy framework
+        await generateStrategyFramework(input)
+        setIsGenerating(false)
+        return
       }
 
       // Generate consequences or causal pathways based on mode
@@ -1165,12 +1283,17 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-120px)]">
-        {/* Graph Area / Scenario Display */}
+        {/* Graph Area / Scenario Display / Strategy Display */}
         <div className="flex-1">
           {mode.type === 'scenario' ? (
             <ScenarioDisplayPanel
               data={scenarioData.data}
               loading={scenarioData.loading}
+            />
+          ) : mode.type === 'strategy' ? (
+            <StrategyDisplayPanel
+              data={strategyData.data}
+              loading={strategyData.loading}
             />
           ) : (
             <ReactFlow
