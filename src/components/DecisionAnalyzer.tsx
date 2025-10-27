@@ -20,6 +20,7 @@ import { ShareAnalysisButton } from './ShareAnalysisButton'
 import { TopicSuggestionButton } from './TopicSuggestionButton'
 import { TopicSuggestionModal } from './TopicSuggestionModal'
 import { ModeComplexityToggle } from './ModeComplexityToggle'
+import { DrillDownModal } from './DrillDownModal'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { useScreenshot } from '@/hooks/useScreenshot'
 import { generateConsequences, generateCausalPathways, generateCommentary } from '@/services/aiService'
@@ -57,6 +58,10 @@ export default function DecisionAnalyzer() {
     data: null as any,
     loading: false
   })
+  const [drillDownModal, setDrillDownModal] = useState({
+    isOpen: false,
+    focusNode: null as DecisionNode | null
+  })
   const { recalculateLayout } = useAutoLayout()
   const { captureReactFlow, captureScenarioPanel } = useScreenshot()
 
@@ -84,14 +89,30 @@ export default function DecisionAnalyzer() {
       handleNodeDeleteInternal(nodeId)
     }
 
+    const handleNodeDrillDown = (event: CustomEvent) => {
+      // Only allow drill-down in expert mode
+      if (!isExpertMode) return
+
+      const { nodeId, nodeData } = event.detail
+      const focusNode = nodes.find(n => n.id === nodeId)
+      if (focusNode && focusNode.data.order > 0) { // Don't drill down on root
+        setDrillDownModal({
+          isOpen: true,
+          focusNode
+        })
+      }
+    }
+
     window.addEventListener('nodeEdit', handleNodeEdit as EventListener)
     window.addEventListener('nodeAdd', handleNodeAdd as EventListener)
     window.addEventListener('nodeDelete', handleNodeDelete as EventListener)
+    window.addEventListener('nodeDrillDown', handleNodeDrillDown as EventListener)
 
     return () => {
       window.removeEventListener('nodeEdit', handleNodeEdit as EventListener)
       window.removeEventListener('nodeAdd', handleNodeAdd as EventListener)
       window.removeEventListener('nodeDelete', handleNodeDelete as EventListener)
+      window.removeEventListener('nodeDrillDown', handleNodeDrillDown as EventListener)
     }
   }, [nodes, edges, commentary, mode])
 
@@ -550,6 +571,67 @@ export default function DecisionAnalyzer() {
     })
   }
 
+  const handleDrillDownSave = async (insights: any) => {
+    // Apply drill-down insights to main tree
+    try {
+      if (insights.propagationSuggestions && insights.propagationSuggestions.length > 0) {
+        let updatedNodes = [...nodes]
+
+        insights.propagationSuggestions.forEach((suggestion: any) => {
+          updatedNodes = updatedNodes.map(node =>
+            node.id === suggestion.targetNodeId
+              ? {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    description: `${node.data.description || ''}\n\nDrill-down insight: ${suggestion.suggestedUpdate}`.trim()
+                  }
+                }
+              : node
+          )
+        })
+
+        setNodes(updatedNodes)
+
+        // Add propagation commentary
+        const propagationCommentary: Commentary = {
+          id: `drill-down-${Date.now()}`,
+          content: `**BOTTOM LINE UP FRONT (BLUF):** Deep dive analysis completed and insights propagated to main tree.
+
+**KEY FINDINGS FROM DRILL-DOWN:**
+${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${finding}`).join('\n') : '• Detailed analysis completed'}
+
+**STRATEGIC IMPLICATIONS:**
+• ${insights.strategicImplications || 'Analysis enhanced with focused insights'}
+
+**RECOMMENDED ACTIONS:**
+• Review updated node descriptions with drill-down insights
+• Consider implications for related strategic decisions`,
+          timestamp: new Date(),
+          triggeredBy: 'nodeEdit',
+          relatedNodes: [insights.focusNodeId]
+        }
+
+        setCommentary(prev => [...prev, propagationCommentary])
+      }
+
+      setDrillDownModal({
+        isOpen: false,
+        focusNode: null
+      })
+
+    } catch (error) {
+      console.error('Error applying drill-down insights:', error)
+    }
+  }
+
+  const handleCloseDrillDown = () => {
+    setDrillDownModal({
+      isOpen: false,
+      focusNode: null
+    })
+  }
+
   const handleInputSubmit = async (input: string) => {
     setIsGenerating(true)
     setMode(prev => ({ ...prev, rootInput: input }))
@@ -937,6 +1019,18 @@ export default function DecisionAnalyzer() {
         loading={topicSuggestionModal.loading}
         onSelectTopic={handleSelectTopic}
       />
+
+      {/* Drill-Down Modal (Expert Mode Only) */}
+      {isExpertMode && (
+        <DrillDownModal
+          isOpen={drillDownModal.isOpen}
+          onClose={handleCloseDrillDown}
+          onSave={handleDrillDownSave}
+          focusNode={drillDownModal.focusNode}
+          parentAnalysisType={mode.type}
+          isExpertMode={isExpertMode}
+        />
+      )}
 
     </div>
   )

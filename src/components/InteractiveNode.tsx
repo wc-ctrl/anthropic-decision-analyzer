@@ -62,6 +62,13 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
     }
   }
 
+  const handleDoubleClick = () => {
+    // Trigger drill-down only in expert mode
+    window.dispatchEvent(new CustomEvent('nodeDrillDown', {
+      detail: { nodeId: id, nodeData: data }
+    }))
+  }
+
   const getNodeStylesAndDimensions = () => {
     // Calculate dynamic dimensions
     const dimensions = calculateNodeDimensions({ data, id, type: 'interactive', position: { x: 0, y: 0 } })
@@ -112,7 +119,12 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
   const { className, style, dimensions } = getNodeStylesAndDimensions()
 
   return (
-    <div className={className} style={style}>
+    <div
+      className={className}
+      style={style}
+      onDoubleClick={handleDoubleClick}
+      title={data.order > 0 ? "Double-click to drill down (Expert mode)" : undefined}
+    >
       {/* Input handles */}
       {data.order > 0 && (
         <Handle
