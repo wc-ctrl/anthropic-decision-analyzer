@@ -55,11 +55,32 @@ export async function POST(request: NextRequest) {
       selectedScaffolds = await scaffoldResponse.json()
     }
 
+    // Enhanced web search for real-time context
+    let webContext = null
+    try {
+      const webSearchResponse = await fetch(`${request.url.split('/api')[0]}/api/web-enhanced-search`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          input,
+          analysisType: type,
+          selectedScaffolds,
+          isNonUSFocused: selectedScaffolds?.isNonUSFocused || false
+        })
+      })
+
+      if (webSearchResponse.ok) {
+        webContext = await webSearchResponse.json()
+      }
+    } catch (error) {
+      console.log('Web search enhancement failed, proceeding without:', error)
+    }
+
     let analysis
     if (type === 'decision') {
-      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount)
+      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
     } else if (type === 'forecast') {
-      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount)
+      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
     } else {
       return NextResponse.json(
         { error: 'Invalid analysis type' },
@@ -77,7 +98,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2) {
+async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -97,6 +118,16 @@ Google Drive Documents:
 ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- ${doc.fileName}: ${doc.excerpt}`).join('\n') : 'No Google Drive data available'}
 
 Use this context to inform your analysis, but focus primarily on strategic business implications.
+` : ''}
+
+${webContext ? `
+REAL-TIME WEB INTELLIGENCE:
+${webContext.contextualIntelligence}
+
+Search Strategy Applied: ${webContext.searchStrategy}
+Last Updated: ${webContext.lastUpdated}
+
+Use this real-time information to enhance the accuracy and relevance of your analysis.
 ` : ''}
 
 ${scaffolds && scaffolds.selectedScaffolds ? `
@@ -219,7 +250,7 @@ ANALYSIS VARIATION: This is a fresh analysis run. Explore different angles and a
   }
 }
 
-async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true) {
+async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -239,6 +270,16 @@ Google Drive Documents:
 ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- ${doc.fileName}: ${doc.excerpt}`).join('\n') : 'No Google Drive data available'}
 
 Use this context to ground your probability estimates in real organizational data and strategic discussions.
+` : ''}
+
+${webContext ? `
+REAL-TIME WEB INTELLIGENCE:
+${webContext.contextualIntelligence}
+
+Search Strategy Applied: ${webContext.searchStrategy}
+Last Updated: ${webContext.lastUpdated}
+
+Use this real-time information to enhance the accuracy and relevance of your causal analysis.
 ` : ''}
 
 ${scaffolds && scaffolds.selectedScaffolds ? `
