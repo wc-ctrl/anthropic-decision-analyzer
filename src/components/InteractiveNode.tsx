@@ -3,12 +3,25 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Handle, Position, NodeProps } from '@xyflow/react'
 import { DecisionNode } from '@/types/decision'
-import { Edit3, Plus, Trash2, Check, X } from 'lucide-react'
+import { Edit3, Plus, Trash2, Check, X, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { calculateNodeDimensions } from '@/utils/layoutUtils'
 
 function getOrdinalSuffix(num: number): string {
   const suffixes = ['th', 'st', 'nd', 'rd', 'th', 'th', 'th']
   return num > 3 ? 'th' : suffixes[num] || 'th'
+}
+
+function getSentimentIcon(sentiment: 'positive' | 'negative' | 'neutral' | undefined) {
+  switch (sentiment) {
+    case 'positive':
+      return <TrendingUp size={14} className="text-green-500 dark:text-green-400" title="Positive impact" />
+    case 'negative':
+      return <TrendingDown size={14} className="text-red-500 dark:text-red-400" title="Negative impact" />
+    case 'neutral':
+      return <Minus size={14} className="text-gray-500 dark:text-gray-400" title="Neutral impact" />
+    default:
+      return null
+  }
 }
 
 export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
@@ -138,9 +151,12 @@ export function InteractiveNode({ data, id }: NodeProps<DecisionNode>) {
       <div className="p-4">
         {/* Header with order indicator */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            {data.order === 0 ? 'Root' : `${data.order}${getOrdinalSuffix(data.order)} Order`}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {data.order === 0 ? 'Root' : `${data.order}${getOrdinalSuffix(data.order)} Order`}
+            </span>
+            {data.order > 0 && getSentimentIcon(data.sentiment)}
+          </div>
           <div className="flex gap-1">
             {!isEditing && (
               <>

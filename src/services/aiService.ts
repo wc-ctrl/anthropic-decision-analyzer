@@ -45,7 +45,7 @@ export async function generateConsequences(decision: string, useSlack: boolean =
     nodes.push(rootNode)
 
     // First order nodes
-    analysis.firstOrder.forEach((consequence: { title: string; description: string }, index: number) => {
+    analysis.firstOrder.forEach((consequence: { title: string; description: string; sentiment?: string }, index: number) => {
       const nodeId = `first-${index}`
       const node: DecisionNode = {
         id: nodeId,
@@ -54,7 +54,8 @@ export async function generateConsequences(decision: string, useSlack: boolean =
           label: consequence.title,
           description: consequence.description,
           order: 1,
-          nodeType: 'consequence'
+          nodeType: 'consequence',
+          sentiment: consequence.sentiment as 'positive' | 'negative' | 'neutral' || 'neutral'
         },
         position: { x: 0, y: 0 } // Will be set by layout function
       }
@@ -71,7 +72,7 @@ export async function generateConsequences(decision: string, useSlack: boolean =
 
       // Second order nodes for this first order consequence
       if (analysis.secondOrder[index]) {
-        analysis.secondOrder[index].forEach((secondConsequence: { title: string; description: string }, secondIndex: number) => {
+        analysis.secondOrder[index].forEach((secondConsequence: { title: string; description: string; sentiment?: string }, secondIndex: number) => {
           const secondNodeId = `second-${index}-${secondIndex}`
           const secondNode: DecisionNode = {
             id: secondNodeId,
@@ -80,7 +81,8 @@ export async function generateConsequences(decision: string, useSlack: boolean =
               label: secondConsequence.title,
               description: secondConsequence.description,
               order: 2,
-              nodeType: 'consequence'
+              nodeType: 'consequence',
+              sentiment: secondConsequence.sentiment as 'positive' | 'negative' | 'neutral' || 'neutral'
             },
             position: { x: 0, y: 0 } // Will be set by layout function
           }
@@ -173,7 +175,7 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
     nodes.push(rootNode)
 
     // Create the causal tree (similar to consequence tree but with different semantics)
-    analysis.firstOrder.forEach((cause: { title: string; description: string; probability: number }, index: number) => {
+    analysis.firstOrder.forEach((cause: { title: string; description: string; probability: number; sentiment?: string }, index: number) => {
       const nodeId = `cause-${index}`
       const node: DecisionNode = {
         id: nodeId,
@@ -183,7 +185,8 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
           description: cause.description,
           order: 1,
           nodeType: 'forecast',
-          probability: cause.probability || 50
+          probability: cause.probability || 50,
+          sentiment: cause.sentiment as 'positive' | 'negative' | 'neutral' || 'neutral'
         },
         position: { x: 0, y: 0 }
       }
@@ -199,7 +202,7 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
       })
 
       if (analysis.secondOrder[index]) {
-        analysis.secondOrder[index].forEach((rootCause: { title: string; description: string; probability: number }, secondIndex: number) => {
+        analysis.secondOrder[index].forEach((rootCause: { title: string; description: string; probability: number; sentiment?: string }, secondIndex: number) => {
           const secondNodeId = `root-cause-${index}-${secondIndex}`
           const secondNode: DecisionNode = {
             id: secondNodeId,
@@ -209,7 +212,8 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
               description: rootCause.description,
               order: 2,
               nodeType: 'forecast',
-              probability: rootCause.probability || 50
+              probability: rootCause.probability || 50,
+              sentiment: rootCause.sentiment as 'positive' | 'negative' | 'neutral' || 'neutral'
             },
             position: { x: 0, y: 0 }
           }

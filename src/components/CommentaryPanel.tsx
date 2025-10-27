@@ -1,15 +1,17 @@
 'use client'
 
 import React from 'react'
-import { Commentary, AnalysisMode } from '@/types/decision'
+import { Commentary, AnalysisMode, DecisionNode } from '@/types/decision'
 import { MessageCircle, Clock, Edit, Plus, Trash } from 'lucide-react'
+import { SentimentSummary } from './SentimentSummary'
 
 interface CommentaryPanelProps {
   commentary: Commentary[]
   mode: AnalysisMode
+  nodes?: DecisionNode[]
 }
 
-export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
+export function CommentaryPanel({ commentary, mode, nodes }: CommentaryPanelProps) {
   const getActionIcon = (triggeredBy: Commentary['triggeredBy']) => {
     switch (triggeredBy) {
       case 'nodeEdit':
@@ -60,6 +62,13 @@ export function CommentaryPanel({ commentary, mode }: CommentaryPanelProps) {
           }
         </p>
       </div>
+
+      {/* Sentiment Summary */}
+      {nodes && nodes.length > 1 && (
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <SentimentSummary nodes={nodes} analysisType={mode.type} />
+        </div>
+      )}
 
       {/* Commentary Feed */}
       <div className="flex-1 overflow-y-auto">

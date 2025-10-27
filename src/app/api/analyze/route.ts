@@ -132,6 +132,7 @@ Generate a simplified analysis with:
 For each consequence, provide:
 - A concise title (max 8 words)
 - A brief description (1-2 sentences)
+- A sentiment classification: "positive" (beneficial), "negative" (harmful), or "neutral" (mixed/unclear)
 
 ${isExpertMode ? `
 IMPORTANT: Return ONLY valid JSON with this EXACT structure (5→2 Expert Mode):
@@ -141,48 +142,48 @@ IMPORTANT: Return ONLY valid JSON with this EXACT structure (3→1 Easy Mode):
 {
   "firstOrder": [
 ${isExpertMode ? `
-    {"title": "First consequence title", "description": "Brief description"},
-    {"title": "Second consequence title", "description": "Brief description"},
-    {"title": "Third consequence title", "description": "Brief description"},
-    {"title": "Fourth consequence title", "description": "Brief description"},
-    {"title": "Fifth consequence title", "description": "Brief description"}
+    {"title": "First consequence title", "description": "Brief description", "sentiment": "positive"},
+    {"title": "Second consequence title", "description": "Brief description", "sentiment": "negative"},
+    {"title": "Third consequence title", "description": "Brief description", "sentiment": "neutral"},
+    {"title": "Fourth consequence title", "description": "Brief description", "sentiment": "positive"},
+    {"title": "Fifth consequence title", "description": "Brief description", "sentiment": "negative"}
 ` : `
-    {"title": "First consequence title", "description": "Brief description"},
-    {"title": "Second consequence title", "description": "Brief description"},
-    {"title": "Third consequence title", "description": "Brief description"}
+    {"title": "First consequence title", "description": "Brief description", "sentiment": "positive"},
+    {"title": "Second consequence title", "description": "Brief description", "sentiment": "negative"},
+    {"title": "Third consequence title", "description": "Brief description", "sentiment": "neutral"}
 `}
   ],
   "secondOrder": {
 ${isExpertMode ? `
     "0": [
-      {"title": "First sub-consequence", "description": "Brief description"},
-      {"title": "Second sub-consequence", "description": "Brief description"}
+      {"title": "First sub-consequence", "description": "Brief description", "sentiment": "positive"},
+      {"title": "Second sub-consequence", "description": "Brief description", "sentiment": "negative"}
     ],
     "1": [
-      {"title": "First sub-consequence", "description": "Brief description"},
-      {"title": "Second sub-consequence", "description": "Brief description"}
+      {"title": "First sub-consequence", "description": "Brief description", "sentiment": "positive"},
+      {"title": "Second sub-consequence", "description": "Brief description", "sentiment": "negative"}
     ],
     "2": [
-      {"title": "First sub-consequence", "description": "Brief description"},
-      {"title": "Second sub-consequence", "description": "Brief description"}
+      {"title": "First sub-consequence", "description": "Brief description", "sentiment": "positive"},
+      {"title": "Second sub-consequence", "description": "Brief description", "sentiment": "negative"}
     ],
     "3": [
-      {"title": "First sub-consequence", "description": "Brief description"},
-      {"title": "Second sub-consequence", "description": "Brief description"}
+      {"title": "First sub-consequence", "description": "Brief description", "sentiment": "positive"},
+      {"title": "Second sub-consequence", "description": "Brief description", "sentiment": "negative"}
     ],
     "4": [
-      {"title": "First sub-consequence", "description": "Brief description"},
-      {"title": "Second sub-consequence", "description": "Brief description"}
+      {"title": "First sub-consequence", "description": "Brief description", "sentiment": "positive"},
+      {"title": "Second sub-consequence", "description": "Brief description", "sentiment": "negative"}
     ]
 ` : `
     "0": [
-      {"title": "Sub-consequence", "description": "Brief description"}
+      {"title": "Sub-consequence", "description": "Brief description", "sentiment": "neutral"}
     ],
     "1": [
-      {"title": "Sub-consequence", "description": "Brief description"}
+      {"title": "Sub-consequence", "description": "Brief description", "sentiment": "neutral"}
     ],
     "2": [
-      {"title": "Sub-consequence", "description": "Brief description"}
+      {"title": "Sub-consequence", "description": "Brief description", "sentiment": "neutral"}
     ]
 `}  }
 }
@@ -282,6 +283,7 @@ For each cause, provide:
 - A concise title (max 8 words)
 - A brief description (1-2 sentences)
 - A probability estimate (0-100) representing how likely this factor was to contribute significantly to the outcome
+- A sentiment classification: "positive" (favorable cause), "negative" (concerning cause), or "neutral" (mixed impact)
 
 Use superforecasting principles:
 - Consider base rates and historical precedents
@@ -293,16 +295,16 @@ Use superforecasting principles:
 IMPORTANT: Return ONLY valid JSON with this EXACT structure:
 {
   "firstOrder": [
-    {"title": "Primary causal factor", "description": "Description", "probability": 85},
-    {"title": "Secondary causal factor", "description": "Description", "probability": 72},
-    {"title": "Third causal factor", "description": "Description", "probability": 68},
-    {"title": "Fourth causal factor", "description": "Description", "probability": 60},
-    {"title": "Fifth causal factor", "description": "Description", "probability": 55}
+    {"title": "Primary causal factor", "description": "Description", "probability": 85, "sentiment": "positive"},
+    {"title": "Secondary causal factor", "description": "Description", "probability": 72, "sentiment": "negative"},
+    {"title": "Third causal factor", "description": "Description", "probability": 68, "sentiment": "neutral"},
+    {"title": "Fourth causal factor", "description": "Description", "probability": 60, "sentiment": "positive"},
+    {"title": "Fifth causal factor", "description": "Description", "probability": 55, "sentiment": "negative"}
   ],
   "secondOrder": {
     "0": [
-      {"title": "Underlying factor 1", "description": "Description", "probability": 78},
-      {"title": "Underlying factor 2", "description": "Description", "probability": 65}
+      {"title": "Underlying factor 1", "description": "Description", "probability": 78, "sentiment": "positive"},
+      {"title": "Underlying factor 2", "description": "Description", "probability": 65, "sentiment": "negative"}
     ],
     "1": [
       {"title": "Underlying factor 1", "description": "Description", "probability": 70},

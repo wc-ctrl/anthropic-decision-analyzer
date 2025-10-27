@@ -998,6 +998,7 @@ ${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${fi
           <CommentaryPanel
             commentary={commentary}
             mode={mode}
+            nodes={nodes}
           />
         </div>
       </div>
