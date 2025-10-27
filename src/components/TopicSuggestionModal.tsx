@@ -213,7 +213,7 @@ export function TopicSuggestionModal({
                             : 'bg-purple-600 hover:bg-purple-700 text-white'
                         }`}
                       >
-                        Start {getTypeLabel(suggestion.type)}
+                        🚀 Start Analysis Now
                       </button>
                     </div>
                   ))}

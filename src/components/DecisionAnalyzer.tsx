@@ -557,7 +557,7 @@ export default function DecisionAnalyzer() {
     }
   }
 
-  const handleSelectTopic = (type: 'decision' | 'forecast' | 'scenario', text: string) => {
+  const handleSelectTopic = async (type: 'decision' | 'forecast' | 'scenario', text: string) => {
     // Switch to the appropriate mode and set the input
     setMode({ type, rootInput: text })
     setNodes([])
@@ -571,6 +571,11 @@ export default function DecisionAnalyzer() {
       data: null,
       loading: false
     })
+
+    // Automatically start analysis for the selected topic
+    setTimeout(() => {
+      handleInputSubmit(text)
+    }, 100) // Small delay to ensure state updates complete
   }
 
   const handleCloseTopicSuggestions = () => {
