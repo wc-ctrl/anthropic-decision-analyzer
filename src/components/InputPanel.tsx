@@ -27,10 +27,10 @@ export function InputPanel({ mode, onSubmit, isGenerating }: InputPanelProps) {
     : 'Enter a future outcome for scenario analysis (e.g., "AGI developed by frontier lab in 2026")'
 
   const buttonText = mode === 'decision'
-    ? 'Analyze Consequences'
+    ? 'Analyze'
     : mode === 'forecast'
-    ? 'Map Causal Chain'
-    : 'Set Target Outcome'
+    ? 'Analyze'
+    : 'Set Target'
 
   return (
     <form onSubmit={handleSubmit} className="flex gap-2 flex-1 max-w-4xl">

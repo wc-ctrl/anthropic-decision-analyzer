@@ -34,7 +34,7 @@ export function ModeComplexityToggle({ isExpert, onToggle, disabled }: ModeCompl
           disabled={disabled}
           className={`flex items-center gap-2 px-3 py-1 rounded-md text-sm font-medium transition-all ${
             isExpert
-              ? 'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm'
+              ? 'bg-white dark:bg-gray-800 text-red-600 dark:text-red-400 shadow-sm'
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
           }`}
           title="Expert Mode: Comprehensive analysis (5→2→1 structure)"
