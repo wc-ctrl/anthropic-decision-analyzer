@@ -70,28 +70,40 @@ ESOTERIC SEARCH PRIORITY (Non-US Topic Detected):
 - Local academic and research institutions
 ` : ''}
 
-TASK: Conduct comprehensive web research and provide contextualized intelligence.
+TASK: Conduct comprehensive web research using multiple strategic search queries.
 
-Use the WebSearch tool to:
-1. Search for recent developments (last 30 days) related to the topic
-2. Find historical precedents and base rate data
-3. Locate expert opinions and authoritative analysis
-4. Discover quantitative data and metrics
-5. Identify potential risks and opportunities
-${isNonUSFocused ? '6. Search for region-specific and non-English sources' : ''}
+EXECUTE THESE WEB SEARCHES using the WebSearch tool:
 
-For each search, focus on:
-- Official sources and primary data
-- Recent developments and trend analysis
-- Expert consensus and disagreement areas
-- Quantitative metrics and statistical evidence
-- Regulatory and policy environment
-- Stakeholder positions and market dynamics
+1. Recent Developments Search:
+   Query: "${input} recent developments 2024 2025"
 
-After comprehensive searching, synthesize findings into strategic intelligence
-that enhances the ${analysisType} analysis with real-time contextual data.
+2. Expert Analysis Search:
+   Query: "${input} expert analysis forecast opinion"
 
-Provide a structured research summary that can inform sophisticated strategic analysis.`
+3. Market/Industry Context Search:
+   Query: "${input} market analysis industry trends"
+
+4. Risk Assessment Search:
+   Query: "${input} risks challenges problems"
+
+5. Historical Precedent Search:
+   Query: "${input} historical precedent similar cases"
+
+${isNonUSFocused ? `
+6. Regional/International Search:
+   Query: "${input} international global regional"
+` : ''}
+
+For each WebSearch result, analyze and extract:
+- Key facts and recent developments
+- Expert opinions and consensus/disagreement
+- Quantitative data and metrics
+- Risk factors and opportunities
+- Historical precedents and base rates
+
+After completing all searches, synthesize the findings into comprehensive strategic intelligence that provides real-time context for ${analysisType} analysis.
+
+Structure your response as a strategic intelligence briefing with actionable insights.`
     }]
   })
 
