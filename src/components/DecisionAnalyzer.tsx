@@ -1097,12 +1097,22 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
               isGenerating={isGenerating}
             />
             {mode.type === 'scenario' && mode.rootInput ? (
-              <ScenarioButton
-                onOpenScenario={handleScenarioAnalysis}
-                isGenerating={scenarioData.loading}
-                hasAnalysis={mode.rootInput.length > 0}
-                disabled={false}
-              />
+              <>
+                <ScenarioButton
+                  onOpenScenario={handleScenarioAnalysis}
+                  isGenerating={scenarioData.loading}
+                  hasAnalysis={mode.rootInput.length > 0}
+                  disabled={false}
+                />
+                {scenarioData.data && (
+                  <GetWeirdButton
+                    onGetWeird={handleGetWeird}
+                    isGenerating={weirdAnalysisModal.loading}
+                    hasAnalysis={true}
+                    disabled={scenarioData.loading || weirdAnalysisModal.loading}
+                  />
+                )}
+              </>
             ) : (nodes.length > 0 || (mode.type === 'scenario' && scenarioData.data)) ? (
               <>
                 <RerunAnalysisButton
@@ -1122,8 +1132,8 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
                 <GetWeirdButton
                   onGetWeird={handleGetWeird}
                   isGenerating={weirdAnalysisModal.loading}
-                  hasAnalysis={nodes.length > 1}
-                  disabled={isGenerating || isGeneratingDeepLayer || isSharing}
+                  hasAnalysis={nodes.length > 0}
+                  disabled={isGenerating || isGeneratingDeepLayer || isSharing || weirdAnalysisModal.loading}
                 />
                 <ShareAnalysisButton
                   onShare={handleShareAnalysis}
