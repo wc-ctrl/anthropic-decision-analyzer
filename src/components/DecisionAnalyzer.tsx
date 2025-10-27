@@ -745,7 +745,7 @@ export default function DecisionAnalyzer() {
               <DarkModeToggle />
             </div>
           </div>
-          <div className="flex gap-4 items-center flex-wrap">
+          <div className="flex gap-4 items-center flex-wrap justify-start">
             <ModeSelector
               currentMode={mode.type}
               onModeChange={handleModeChange}
