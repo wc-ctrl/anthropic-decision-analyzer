@@ -11,7 +11,7 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { type, input, useSlack = true, useGDrive = true, timestamp } = body
+    const { type, input, useSlack = true, useGDrive = true, timestamp, isExpertMode = true } = body
 
     if (!process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY) {
       return NextResponse.json(
@@ -57,9 +57,9 @@ export async function POST(request: NextRequest) {
 
     let analysis
     if (type === 'decision') {
-      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds)
+      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds, isExpertMode)
     } else if (type === 'forecast') {
-      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds)
+      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds, isExpertMode)
     } else {
       return NextResponse.json(
         { error: 'Invalid analysis type' },
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any) {
+async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -119,24 +119,41 @@ RECOMMENDED APPROACH: ${scaffolds.analyticalApproach || 'Multi-factor systematic
 Apply these frameworks to enhance the rigor and depth of your consequence analysis.
 ` : ''}
 
+${isExpertMode ? `
 Generate a structured analysis with:
 1. EXACTLY 5 first-order consequences (direct results)
 2. For EACH of the 5 first-order consequences, EXACTLY 2 second-order consequences (consequences of consequences)
+` : `
+Generate a simplified analysis with:
+1. EXACTLY 3 first-order consequences (direct results)
+2. For EACH of the 3 first-order consequences, EXACTLY 1 second-order consequence (consequence of consequence)
+`}
 
 For each consequence, provide:
 - A concise title (max 8 words)
 - A brief description (1-2 sentences)
 
-IMPORTANT: Return ONLY valid JSON with this EXACT structure - no other text:
+${isExpertMode ? `
+IMPORTANT: Return ONLY valid JSON with this EXACT structure (5→2 Expert Mode):
+` : `
+IMPORTANT: Return ONLY valid JSON with this EXACT structure (3→1 Easy Mode):
+`}
 {
   "firstOrder": [
+${isExpertMode ? `
     {"title": "First consequence title", "description": "Brief description"},
     {"title": "Second consequence title", "description": "Brief description"},
     {"title": "Third consequence title", "description": "Brief description"},
     {"title": "Fourth consequence title", "description": "Brief description"},
     {"title": "Fifth consequence title", "description": "Brief description"}
+` : `
+    {"title": "First consequence title", "description": "Brief description"},
+    {"title": "Second consequence title", "description": "Brief description"},
+    {"title": "Third consequence title", "description": "Brief description"}
+`}
   ],
   "secondOrder": {
+${isExpertMode ? `
     "0": [
       {"title": "First sub-consequence", "description": "Brief description"},
       {"title": "Second sub-consequence", "description": "Brief description"}
@@ -157,7 +174,17 @@ IMPORTANT: Return ONLY valid JSON with this EXACT structure - no other text:
       {"title": "First sub-consequence", "description": "Brief description"},
       {"title": "Second sub-consequence", "description": "Brief description"}
     ]
-  }
+` : `
+    "0": [
+      {"title": "Sub-consequence", "description": "Brief description"}
+    ],
+    "1": [
+      {"title": "Sub-consequence", "description": "Brief description"}
+    ],
+    "2": [
+      {"title": "Sub-consequence", "description": "Brief description"}
+    ]
+`}  }
 }
 
 Focus on realistic, business-relevant consequences that executives would care about. Consider financial, operational, strategic, and human impacts.
@@ -191,7 +218,7 @@ ANALYSIS VARIATION: This is a fresh analysis run. Explore different angles and a
   }
 }
 
-async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any) {
+async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true) {
   const message = await anthropic.messages.create({
     model: 'claude-3-5-sonnet-20241022',
     max_tokens: 2000,
@@ -241,9 +268,15 @@ ESOTERIC SEARCH GUIDANCE: This topic requires specialized source access. Priorit
 Apply these frameworks to enhance the rigor and depth of your causal analysis.
 ` : ''}
 
-Generate a causal analysis showing what led to this outcome:
+${isExpertMode ? `
+Generate a comprehensive causal analysis showing what led to this outcome:
 1. EXACTLY 5 first-order causes (direct drivers that led to this outcome)
 2. For EACH first-order cause, EXACTLY 2 second-order causes (underlying factors)
+` : `
+Generate a simplified causal analysis showing what led to this outcome:
+1. EXACTLY 3 first-order causes (direct drivers that led to this outcome)
+2. For EACH first-order cause, EXACTLY 1 second-order cause (underlying factor)
+`}
 
 For each cause, provide:
 - A concise title (max 8 words)
