@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Parse comma-separated inputs for multi-root analysis
+    const inputs = input.split(',').map((i: string) => i.trim()).filter((i: string) => i.length > 0)
+
     // Get contextual data from MCP sources if available
     let contextualData = null
     const sources = []
@@ -76,16 +79,23 @@ export async function POST(request: NextRequest) {
       console.log('Web search enhancement failed, proceeding without:', error)
     }
 
+    // Generate analysis for each input
     let analysis
-    if (type === 'decision') {
-      analysis = await generateConsequences(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
-    } else if (type === 'forecast') {
-      analysis = await generateCausalPathways(input, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
+    if (inputs.length === 1) {
+      // Single root - use original logic
+      if (type === 'decision') {
+        analysis = await generateConsequences(inputs[0], contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
+      } else if (type === 'forecast') {
+        analysis = await generateCausalPathways(inputs[0], contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
+      } else {
+        return NextResponse.json(
+          { error: 'Invalid analysis type' },
+          { status: 400 }
+        )
+      }
     } else {
-      return NextResponse.json(
-        { error: 'Invalid analysis type' },
-        { status: 400 }
-      )
+      // Multiple roots - generate combined analysis
+      analysis = await generateMultiRootAnalysis(inputs, type, contextualData, timestamp, selectedScaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
     }
 
     return NextResponse.json(analysis)
@@ -100,7 +110,7 @@ export async function POST(request: NextRequest) {
 
 async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2000,
     messages: [{
       role: 'user',
@@ -252,7 +262,7 @@ ANALYSIS VARIATION: This is a fresh analysis run. Explore different angles and a
 
 async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2000,
     messages: [{
       role: 'user',
@@ -394,5 +404,122 @@ ANALYSIS VARIATION: This is a fresh causal analysis run. Consider alternative ca
     type: 'forecast',
     analysis,
     input: forecast
+  }
+}
+
+async function generateMultiRootAnalysis(
+  inputs: string[],
+  type: string,
+  contextualData?: any,
+  timestamp?: number,
+  scaffolds?: any,
+  isExpertMode: boolean = true,
+  firstOrderCount: number = 5,
+  secondOrderCount: number = 2,
+  webContext?: any
+) {
+  // Generate analysis for each input
+  const analyses = await Promise.all(
+    inputs.map((input, index) =>
+      type === 'decision'
+        ? generateConsequences(input, contextualData, timestamp, scaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
+        : generateCausalPathways(input, contextualData, timestamp, scaffolds, isExpertMode, firstOrderCount, secondOrderCount, webContext)
+    )
+  )
+
+  // Analyze cross-root causal relationships
+  let crossRootConnections: any[] = []
+  if (inputs.length > 1) {
+    try {
+      const crossRootResponse = await anthropic.messages.create({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 1500,
+        messages: [{
+          role: 'user',
+          content: `You are analyzing the causal relationships between multiple ${type === 'decision' ? 'decisions' : 'forecasts/outcomes'}.
+
+Given these ${type === 'decision' ? 'decisions' : 'outcomes'}:
+${inputs.map((input, idx) => `${idx + 1}. "${input}"`).join('\n')}
+
+Identify the direct causal relationships between these factors. For each relationship, specify:
+- Which factor influences which other factor(s)
+- The strength of influence (weak, moderate, strong)
+- The nature of the relationship (enables, blocks, amplifies, reduces, causes, prevents)
+- A brief explanation (1 sentence)
+
+${type === 'decision' ? `
+Examples of decision relationships:
+- "Launch product in Q2" might ENABLE "Expand to EU markets" (strong, enables)
+- "Increase R&D spending" might AMPLIFY "Launch product in Q2" (moderate, amplifies)
+- "Cut costs" might BLOCK "Increase R&D spending" (strong, blocks)
+` : `
+Examples of outcome relationships:
+- "Market consolidates" might CAUSE "AI regulation passes" (moderate, causes)
+- "Economic downturn" might PREVENT "Market expansion" (strong, prevents)
+`}
+
+Return ONLY valid JSON with this structure:
+{
+  "connections": [
+    {
+      "from": 0,
+      "to": 1,
+      "strength": "strong",
+      "nature": "enables",
+      "explanation": "One sentence explanation"
+    }
+  ]
+}
+
+If no significant causal relationships exist, return: {"connections": []}
+
+Focus only on DIRECT relationships between the root factors, not indirect effects.`
+        }]
+      })
+
+      const responseText = crossRootResponse.content[0].type === 'text' ? crossRootResponse.content[0].text : ''
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      const jsonText = jsonMatch ? jsonMatch[0] : responseText
+      const crossRootData = JSON.parse(jsonText)
+      crossRootConnections = crossRootData.connections || []
+    } catch (error) {
+      console.log('Cross-root analysis failed, proceeding without connections:', error)
+    }
+  }
+
+  // Combine all analyses into a single structure with multiple root nodes
+  const combinedFirstOrder: any[] = []
+  const combinedSecondOrder: any = {}
+
+  inputs.forEach((inputText, rootIndex) => {
+    const analysis = analyses[rootIndex].analysis
+
+    // Add all first-order items for this root
+    analysis.firstOrder.forEach((item: any, itemIndex: number) => {
+      const globalIndex = combinedFirstOrder.length
+      combinedFirstOrder.push({
+        ...item,
+        rootIndex: rootIndex,
+        rootLabel: inputText
+      })
+
+      // Map second-order items
+      const localSecondOrder = analysis.secondOrder[itemIndex.toString()]
+      if (localSecondOrder) {
+        combinedSecondOrder[globalIndex.toString()] = localSecondOrder
+      }
+    })
+  })
+
+  return {
+    type: type,
+    analysis: {
+      firstOrder: combinedFirstOrder,
+      secondOrder: combinedSecondOrder,
+      multiRoot: true,
+      rootInputs: inputs,
+      crossRootConnections: crossRootConnections
+    },
+    input: inputs.join(', ')
   }
 }

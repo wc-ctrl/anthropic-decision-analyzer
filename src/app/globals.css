@@ -1,106 +1,511 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════
+   CLAUDESWITZ DESIGN SYSTEM
+   "Strategic Command Center" - Refined, Warm, Authoritative
+   ═══════════════════════════════════════════════════════════════ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Palette - Warm Charcoal & Ivory */
+  --bg-deep: #0c1017;
+  --bg-surface: #141a24;
+  --bg-elevated: #1c2433;
+  --bg-hover: #252f3f;
+
+  --text-primary: #f5f0e8;
+  --text-secondary: #a8a095;
+  --text-muted: #6b6560;
+
+  /* Accent Colors - Strategic & Purposeful */
+  --accent-gold: #d4a853;
+  --accent-gold-dim: #b8923f;
+  --accent-gold-glow: rgba(212, 168, 83, 0.15);
+
+  --accent-teal: #4db6ac;
+  --accent-teal-dim: #3d9d94;
+
+  --accent-coral: #e07a5f;
+  --accent-coral-dim: #c96b52;
+
+  --accent-violet: #9f7aea;
+  --accent-violet-dim: #8b5cf6;
+
+  /* Borders & Lines */
+  --border-subtle: rgba(168, 160, 149, 0.12);
+  --border-medium: rgba(168, 160, 149, 0.2);
+  --border-accent: rgba(212, 168, 83, 0.4);
+
+  /* Shadows */
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 30px rgba(212, 168, 83, 0.1);
+
+  /* Typography */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-smooth: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+/* Light mode overrides */
+@media (prefers-color-scheme: light) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-deep: #f8f5f0;
+    --bg-surface: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-hover: #f0ebe4;
+
+    --text-primary: #1a1612;
+    --text-secondary: #5c554d;
+    --text-muted: #8c857d;
+
+    --border-subtle: rgba(28, 24, 20, 0.08);
+    --border-medium: rgba(28, 24, 20, 0.15);
+
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   BASE STYLES
+   ───────────────────────────────────────────────────────────────── */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* React Flow dark mode styles */
-.dark .react-flow__background {
-  background: rgb(17 24 39);
+/* Subtle grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  z-index: 9999;
 }
 
-.dark .react-flow__minimap {
-  background: rgb(31 41 55);
+/* ─────────────────────────────────────────────────────────────────
+   TYPOGRAPHY
+   ───────────────────────────────────────────────────────────────── */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
-.dark .react-flow__controls {
-  background: rgb(31 41 55);
-  border: 1px solid rgb(55 65 81);
+.font-display {
+  font-family: var(--font-display);
 }
 
-.dark .react-flow__controls button {
-  background: rgb(31 41 55);
-  color: white;
-  border-bottom: 1px solid rgb(55 65 81);
+.font-mono {
+  font-family: var(--font-mono);
 }
 
-.dark .react-flow__controls button:hover {
-  background: rgb(55 65 81);
+/* ─────────────────────────────────────────────────────────────────
+   CUSTOM COMPONENT STYLES
+   ───────────────────────────────────────────────────────────────── */
+
+/* Strategic Header */
+.cw-header {
+  background: linear-gradient(180deg, var(--bg-surface) 0%, var(--bg-deep) 100%);
+  border-bottom: 1px solid var(--border-subtle);
+  backdrop-filter: blur(12px);
 }
 
-/* Handle styles for dark mode */
-.react-flow__handle {
-  background: rgb(156 163 175);
-  border: 2px solid rgb(156 163 175);
+/* Action Buttons */
+.cw-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
 }
 
-.dark .react-flow__handle {
-  background: rgb(75 85 99);
-  border: 2px solid rgb(75 85 99);
+.cw-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Edge styles for better visibility and reduced overlap */
+.cw-btn-primary {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dim) 100%);
+  color: #0c1017;
+  border-color: var(--accent-gold);
+  box-shadow: 0 2px 12px rgba(212, 168, 83, 0.25);
+}
+
+.cw-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(212, 168, 83, 0.35);
+}
+
+.cw-btn-secondary {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+.cw-btn-secondary:hover:not(:disabled) {
+  background: var(--bg-hover);
+  border-color: var(--border-accent);
+}
+
+.cw-btn-ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  border-color: transparent;
+}
+
+.cw-btn-ghost:hover:not(:disabled) {
+  color: var(--text-primary);
+  background: var(--bg-elevated);
+}
+
+/* Cards */
+.cw-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+}
+
+.cw-card-elevated {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-medium);
+  border-radius: 12px;
+  box-shadow: var(--shadow-medium);
+}
+
+/* Input Fields */
+.cw-input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+}
+
+.cw-input::placeholder {
+  color: var(--text-muted);
+}
+
+.cw-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--accent-gold-glow);
+}
+
+/* Mode Selector Pills */
+.cw-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 100px;
+  border: 1px solid transparent;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.cw-mode-pill-inactive {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border-subtle);
+}
+
+.cw-mode-pill-inactive:hover {
+  color: var(--text-secondary);
+  border-color: var(--border-medium);
+  background: var(--bg-elevated);
+}
+
+.cw-mode-pill-active {
+  background: var(--accent-gold-glow);
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
+/* Badges */
+.cw-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+.cw-badge-gold {
+  background: var(--accent-gold-glow);
+  color: var(--accent-gold);
+}
+
+.cw-badge-teal {
+  background: rgba(77, 182, 172, 0.15);
+  color: var(--accent-teal);
+}
+
+/* Panel */
+.cw-panel {
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border-subtle);
+}
+
+.cw-panel-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-surface) 100%);
+}
+
+/* Empty State */
+.cw-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 3rem;
+  text-align: center;
+}
+
+.cw-empty-state-icon {
+  width: 80px;
+  height: 80px;
+  margin-bottom: 1.5rem;
+  opacity: 0.3;
+}
+
+.cw-empty-state-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.cw-empty-state-text {
+  font-size: 0.9375rem;
+  color: var(--text-muted);
+  max-width: 400px;
+  line-height: 1.6;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   REACT FLOW CUSTOMIZATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+.react-flow__background {
+  background: var(--bg-deep) !important;
+}
+
+.react-flow__background pattern circle {
+  fill: var(--text-muted) !important;
+  opacity: 0.3;
+}
+
+.react-flow__minimap {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.react-flow__minimap-mask {
+  fill: var(--bg-deep) !important;
+  opacity: 0.8;
+}
+
+.react-flow__controls {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft) !important;
+}
+
+.react-flow__controls button {
+  background: var(--bg-surface) !important;
+  color: var(--text-secondary) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  transition: all var(--transition-fast);
+}
+
+.react-flow__controls button:hover {
+  background: var(--bg-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+.react-flow__controls button:last-child {
+  border-bottom: none !important;
+}
+
+.react-flow__controls button svg {
+  fill: currentColor !important;
+}
+
+/* Edge Styles */
 .react-flow__edge-path {
-  stroke: rgb(99 102 241);
-  stroke-width: 2px;
-}
-
-.dark .react-flow__edge-path {
-  stroke: rgb(156 163 175);
+  stroke: var(--accent-gold-dim) !important;
   stroke-width: 2px;
 }
 
 .react-flow__edge.animated path {
-  stroke-dasharray: 8 4;
-  animation: dashdraw 1s linear infinite;
-  stroke: rgb(59 130 246);
-  stroke-width: 2.5px;
+  stroke-dasharray: 6 3;
+  animation: dashdraw 0.8s linear infinite;
+  stroke: var(--accent-gold) !important;
+  stroke-width: 2px;
 }
 
-.dark .react-flow__edge.animated path {
-  stroke-dasharray: 8 4;
-  animation: dashdraw 1s linear infinite;
-  stroke: rgb(96 165 250);
-  stroke-width: 2.5px;
+@keyframes dashdraw {
+  from { stroke-dashoffset: 18; }
+  to { stroke-dashoffset: 0; }
 }
 
-/* Improved edge markers */
-.react-flow__arrowhead {
-  fill: rgb(59 130 246);
-}
-
-.dark .react-flow__arrowhead {
-  fill: rgb(96 165 250);
-}
-
-/* Edge hover effects */
 .react-flow__edge:hover path {
   stroke-width: 3px;
-  stroke: rgb(37 99 235);
+  stroke: var(--accent-gold) !important;
 }
 
-.dark .react-flow__edge:hover path {
-  stroke-width: 3px;
-  stroke: rgb(147 197 253);
+/* Handle Styles */
+.react-flow__handle {
+  background: var(--accent-gold) !important;
+  border: 2px solid var(--bg-surface) !important;
+  width: 10px !important;
+  height: 10px !important;
+}
+
+/* Attribution Hide */
+.react-flow__attribution {
+  display: none !important;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ANIMATIONS
+   ───────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(212, 168, 83, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(212, 168, 83, 0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn var(--transition-smooth) ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp var(--transition-smooth) ease-out;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 2s infinite;
+}
+
+/* Staggered children animations */
+.stagger-children > * {
+  animation: slideUp var(--transition-smooth) ease-out backwards;
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 250ms; }
+
+/* ─────────────────────────────────────────────────────────────────
+   SCROLLBAR STYLING
+   ───────────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DARK MODE FORCED (for now, we default to dark)
+   ───────────────────────────────────────────────────────────────── */
+
+.dark .react-flow__background {
+  background: var(--bg-deep) !important;
+}
+
+/* Legacy Tailwind dark mode overrides */
+.dark {
+  --tw-bg-opacity: 1;
 }

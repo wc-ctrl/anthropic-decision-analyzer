@@ -2,10 +2,51 @@ import { DecisionNode, DecisionEdge, DecisionAnalysis, Commentary } from '@/type
 import { v4 as uuidv4 } from 'uuid'
 import { generateOptimizedTreeLayout } from '@/utils/layoutUtils'
 
+// Helper function to style cross-root connection edges based on relationship type
+function getConnectionStyle(strength: string, nature: string) {
+  const strengthMap: Record<string, number> = {
+    'weak': 1.5,
+    'moderate': 2.5,
+    'strong': 3.5
+  }
 
-export async function generateConsequences(decision: string, useSlack: boolean = false, useGDrive: boolean = false, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2): Promise<DecisionAnalysis> {
+  const natureColors: Record<string, string> = {
+    'enables': '#10b981',      // green
+    'amplifies': '#3b82f6',    // blue
+    'causes': '#8b5cf6',       // purple
+    'blocks': '#ef4444',       // red
+    'prevents': '#dc2626',     // dark red
+    'reduces': '#f59e0b'       // orange
+  }
+
+  const strokeWidth = strengthMap[strength] || 2
+  const strokeColor = natureColors[nature] || '#6b7280'
+
+  return {
+    style: {
+      stroke: strokeColor,
+      strokeWidth: strokeWidth,
+      strokeDasharray: strength === 'weak' ? '5,5' : undefined
+    },
+    labelColor: strokeColor
+  }
+}
+
+
+interface SlackContext {
+  id: string
+  channel: string
+  text: string
+  user: string
+  timestamp: string
+  permalink?: string
+}
+
+export async function generateConsequences(decision: string, useDocuments: boolean = false, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, slackContext: SlackContext[] = []): Promise<DecisionAnalysis> {
   try {
-    const response = await fetch('/api/analyze', {
+    // Use same-origin if NEXT_PUBLIC_BACKEND_URL is empty or not set (production mode)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+    const response = await fetch(`${backendUrl}/api/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -13,8 +54,8 @@ export async function generateConsequences(decision: string, useSlack: boolean =
       body: JSON.stringify({
         type: 'decision',
         input: decision,
-        useSlack,
-        useGDrive,
+        useDocuments,
+        slackContext: slackContext.length > 0 ? slackContext : undefined,
         isExpertMode,
         firstOrderCount,
         secondOrderCount,
@@ -33,21 +74,61 @@ export async function generateConsequences(decision: string, useSlack: boolean =
     const nodes: DecisionNode[] = []
     const edges: DecisionEdge[] = []
 
-    // Root node
-    const rootNode: DecisionNode = {
-      id: 'root',
-      type: 'interactive',
-      data: {
-        label: decision,
-        order: 0,
-        nodeType: 'decision'
-      },
-      position: { x: 400, y: 50 }
+    // Check if this is a multi-root analysis
+    if (analysis.multiRoot && analysis.rootInputs) {
+      // Create multiple root nodes
+      const rootInputs = analysis.rootInputs
+      const rootSpacing = 500 // Horizontal spacing between roots
+
+      rootInputs.forEach((rootInput: string, rootIdx: number) => {
+        const rootNode: DecisionNode = {
+          id: `root-${rootIdx}`,
+          type: 'interactive',
+          data: {
+            label: rootInput,
+            order: 0,
+            nodeType: 'decision'
+          },
+          position: { x: 200 + (rootIdx * rootSpacing), y: 50 }
+        }
+        nodes.push(rootNode)
+      })
+
+      // Add cross-root connection edges
+      if (analysis.crossRootConnections && analysis.crossRootConnections.length > 0) {
+        analysis.crossRootConnections.forEach((connection: any, idx: number) => {
+          const edgeStyle = getConnectionStyle(connection.strength, connection.nature)
+          edges.push({
+            id: `cross-root-${idx}`,
+            source: `root-${connection.from}`,
+            target: `root-${connection.to}`,
+            type: 'smoothstep',
+            animated: true,
+            style: edgeStyle.style,
+            label: `${connection.nature} (${connection.strength})`,
+            labelStyle: { fill: edgeStyle.labelColor, fontWeight: 600, fontSize: 11 },
+            labelBgStyle: { fill: 'white', fillOpacity: 0.9 },
+            data: { explanation: connection.explanation }
+          } as DecisionEdge)
+        })
+      }
+    } else {
+      // Single root node
+      const rootNode: DecisionNode = {
+        id: 'root',
+        type: 'interactive',
+        data: {
+          label: decision,
+          order: 0,
+          nodeType: 'decision'
+        },
+        position: { x: 400, y: 50 }
+      }
+      nodes.push(rootNode)
     }
-    nodes.push(rootNode)
 
     // First order nodes
-    analysis.firstOrder.forEach((consequence: { title: string; description: string; sentiment?: string }, index: number) => {
+    analysis.firstOrder.forEach((consequence: { title: string; description: string; sentiment?: string; rootIndex?: number; rootLabel?: string }, index: number) => {
       const nodeId = `first-${index}`
       const node: DecisionNode = {
         id: nodeId,
@@ -63,10 +144,11 @@ export async function generateConsequences(decision: string, useSlack: boolean =
       }
       nodes.push(node)
 
-      // Edge from root to first order
+      // Edge from appropriate root to first order
+      const sourceRoot = consequence.rootIndex !== undefined ? `root-${consequence.rootIndex}` : 'root'
       edges.push({
-        id: `edge-root-${nodeId}`,
-        source: 'root',
+        id: `edge-${sourceRoot}-${nodeId}`,
+        source: sourceRoot,
         target: nodeId,
         type: 'smoothstep',
         animated: true
@@ -135,9 +217,11 @@ export async function generateConsequences(decision: string, useSlack: boolean =
   }
 }
 
-export async function generateCausalPathways(forecast: string, useSlack: boolean = false, useGDrive: boolean = false, isExpertMode: boolean = true): Promise<DecisionAnalysis> {
+export async function generateCausalPathways(forecast: string, useDocuments: boolean = false, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, slackContext: SlackContext[] = []): Promise<DecisionAnalysis> {
   try {
-    const response = await fetch('/api/analyze', {
+    // Use same-origin if NEXT_PUBLIC_BACKEND_URL is empty or not set (production mode)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+    const response = await fetch(`${backendUrl}/api/analyze`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -145,9 +229,11 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
       body: JSON.stringify({
         type: 'forecast',
         input: forecast,
-        useSlack,
-        useGDrive,
+        useDocuments,
+        slackContext: slackContext.length > 0 ? slackContext : undefined,
         isExpertMode,
+        firstOrderCount,
+        secondOrderCount,
         timestamp: Date.now() // Ensures fresh analysis each time
       })
     })
@@ -163,21 +249,61 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
     const nodes: DecisionNode[] = []
     const edges: DecisionEdge[] = []
 
-    // Root node (the forecast)
-    const rootNode: DecisionNode = {
-      id: 'root',
-      type: 'interactive',
-      data: {
-        label: forecast,
-        order: 0,
-        nodeType: 'forecast'
-      },
-      position: { x: 400, y: 50 }
+    // Check if this is a multi-root analysis
+    if (analysis.multiRoot && analysis.rootInputs) {
+      // Create multiple root nodes
+      const rootInputs = analysis.rootInputs
+      const rootSpacing = 500 // Horizontal spacing between roots
+
+      rootInputs.forEach((rootInput: string, rootIdx: number) => {
+        const rootNode: DecisionNode = {
+          id: `root-${rootIdx}`,
+          type: 'interactive',
+          data: {
+            label: rootInput,
+            order: 0,
+            nodeType: 'forecast'
+          },
+          position: { x: 200 + (rootIdx * rootSpacing), y: 50 }
+        }
+        nodes.push(rootNode)
+      })
+
+      // Add cross-root connection edges
+      if (analysis.crossRootConnections && analysis.crossRootConnections.length > 0) {
+        analysis.crossRootConnections.forEach((connection: any, idx: number) => {
+          const edgeStyle = getConnectionStyle(connection.strength, connection.nature)
+          edges.push({
+            id: `cross-root-${idx}`,
+            source: `root-${connection.from}`,
+            target: `root-${connection.to}`,
+            type: 'smoothstep',
+            animated: true,
+            style: edgeStyle.style,
+            label: `${connection.nature} (${connection.strength})`,
+            labelStyle: { fill: edgeStyle.labelColor, fontWeight: 600, fontSize: 11 },
+            labelBgStyle: { fill: 'white', fillOpacity: 0.9 },
+            data: { explanation: connection.explanation }
+          } as DecisionEdge)
+        })
+      }
+    } else {
+      // Root node (the forecast)
+      const rootNode: DecisionNode = {
+        id: 'root',
+        type: 'interactive',
+        data: {
+          label: forecast,
+          order: 0,
+          nodeType: 'forecast'
+        },
+        position: { x: 400, y: 50 }
+      }
+      nodes.push(rootNode)
     }
-    nodes.push(rootNode)
 
     // Create the causal tree (similar to consequence tree but with different semantics)
-    analysis.firstOrder.forEach((cause: { title: string; description: string; probability: number; sentiment?: string }, index: number) => {
+    analysis.firstOrder.forEach((cause: { title: string; description: string; probability: number; sentiment?: string; rootIndex?: number; rootLabel?: string }, index: number) => {
       const nodeId = `cause-${index}`
       const node: DecisionNode = {
         id: nodeId,
@@ -194,10 +320,12 @@ export async function generateCausalPathways(forecast: string, useSlack: boolean
       }
       nodes.push(node)
 
+      // Edge from cause to appropriate root (causes point TO the outcome)
+      const targetRoot = cause.rootIndex !== undefined ? `root-${cause.rootIndex}` : 'root'
       edges.push({
-        id: `edge-${nodeId}-root`,
+        id: `edge-${nodeId}-${targetRoot}`,
         source: nodeId,
-        target: 'root',
+        target: targetRoot,
         type: 'smoothstep',
         animated: true,
         style: { stroke: '#10b981', strokeWidth: 2 }
@@ -270,7 +398,9 @@ export async function generateCommentary(
   relatedNodes: string[]
 ): Promise<Commentary> {
   try {
-    const response = await fetch('/api/commentary', {
+    // Use same-origin if NEXT_PUBLIC_BACKEND_URL is empty or not set (production mode)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+    const response = await fetch(`${backendUrl}/api/commentary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

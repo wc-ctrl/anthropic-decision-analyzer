@@ -14,7 +14,7 @@ interface DrillDownModalProps {
   onClose: () => void
   onSave: (insights: DrillDownInsights) => void
   focusNode: DecisionNode | null
-  parentAnalysisType: 'decision' | 'forecast' | 'scenario'
+  parentAnalysisType: 'decision' | 'forecast' | 'scenario' | 'strategy'
   isExpertMode: boolean
 }
 
@@ -58,57 +58,52 @@ export function DrillDownModal({
     setSubEdges((eds) => addEdge(edge, eds) as DecisionEdge[])
   }, [setSubEdges])
 
-  // Generate sub-analysis when modal opens
+  // Generate analysis commentary when modal opens (without generating new tree)
   React.useEffect(() => {
-    if (isOpen && focusNode && subNodes.length === 0) {
-      generateSubAnalysis()
+    if (isOpen && focusNode && subCommentary.length === 0) {
+      generateAnalysisCommentary()
     }
   }, [isOpen, focusNode])
 
-  const generateSubAnalysis = async () => {
+  const generateAnalysisCommentary = async () => {
     if (!focusNode) return
 
     setIsGenerating(true)
 
     try {
-      // Call sub-analysis API
-      const response = await fetch('/api/drill-down', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          focusNode,
-          parentAnalysisType,
-          isExpertMode
-        })
-      })
+      // Display the focus node in the center without children
+      const centerNode: DecisionNode = {
+        ...focusNode,
+        position: { x: 400, y: 200 }
+      }
+      setSubNodes([centerNode])
+      setSubEdges([])
 
-      if (!response.ok) {
-        throw new Error('Failed to generate sub-analysis')
+      // Generate deep analysis commentary for this node
+      const analysis = {
+        nodes: [centerNode],
+        edges: [],
+        commentary: [],
+        mode: { type: parentAnalysisType, rootInput: focusNode.data.label }
       }
 
-      const subAnalysis = await response.json()
+      const commentary = await generateCommentary(
+        analysis,
+        `Deep dive on "${focusNode.data.label}"`,
+        [focusNode.id]
+      )
 
-      setSubNodes(subAnalysis.nodes)
-      setSubEdges(subAnalysis.edges)
+      setSubCommentary([commentary])
 
-      // Auto-fit the sub-analysis
+      // Auto-fit the view
       setTimeout(() => {
         if (reactFlowInstance) {
           reactFlowInstance.fitView({ padding: 0.2 })
         }
       }, 500)
 
-      // Generate initial commentary
-      const initialCommentary = await generateCommentary({
-        nodes: subAnalysis.nodes,
-        edges: subAnalysis.edges,
-        commentary: [],
-        mode: { type: parentAnalysisType, rootInput: focusNode.data.label }
-      }, 'initialAnalysis', [])
-      setSubCommentary([initialCommentary])
-
     } catch (error) {
-      console.error('Error generating sub-analysis:', error)
+      console.error('Error generating deep dive analysis:', error)
     } finally {
       setIsGenerating(false)
     }
@@ -177,6 +172,7 @@ export function DrillDownModal({
       case 'decision': return 'Consequence Deep Dive'
       case 'forecast': return 'Causal Factor Deep Dive'
       case 'scenario': return 'Scenario Element Deep Dive'
+      case 'strategy': return 'Strategic Element Deep Dive'
       default: return 'Deep Dive Analysis'
     }
   }
@@ -329,9 +325,15 @@ export function DrillDownModal({
 
               {/* Footer Info */}
               <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-blue-50 dark:bg-blue-900/10">
-                <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
-                  <ArrowLeft size={12} />
-                  <span>Changes will update main tree when saved</span>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-xs text-blue-700 dark:text-blue-300">
+                    <ZoomIn size={12} />
+                    <span className="font-medium">Deep Dive Mode: Analyzing "{focusNode.data.label}"</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+                    <ArrowLeft size={12} />
+                    <span>Changes will update main tree when saved</span>
+                  </div>
                 </div>
               </div>
             </div>

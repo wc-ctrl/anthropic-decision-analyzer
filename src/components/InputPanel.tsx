@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Send, Loader2 } from 'lucide-react'
+import { Send, Loader2, Sparkles } from 'lucide-react'
 
 interface InputPanelProps {
   mode: 'decision' | 'forecast' | 'scenario' | 'strategy'
@@ -11,6 +11,7 @@ interface InputPanelProps {
 
 export function InputPanel({ mode, onSubmit, isGenerating }: InputPanelProps) {
   const [input, setInput] = useState('')
+  const [isFocused, setIsFocused] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,49 +21,84 @@ export function InputPanel({ mode, onSubmit, isGenerating }: InputPanelProps) {
     }
   }
 
-  const placeholder = mode === 'decision'
-    ? 'Enter a decision you\'re considering (e.g., "Launch new product line in Q2")'
-    : mode === 'forecast'
-    ? 'Enter an outcome you want to understand (e.g., "Company reaches $100B revenue by 2026")'
-    : mode === 'scenario'
-    ? 'Enter a future outcome for scenario analysis (e.g., "AGI developed by frontier lab in 2026")'
-    : 'Enter a strategic goal (e.g., "Become market leader in AI safety by 2027")'
+  const placeholders: Record<string, string> = {
+    decision: 'What decision are you considering? (e.g., "Launch product in Q2" or multiple: "Option A, Option B")',
+    forecast: 'What outcome do you want to trace back? (e.g., "AI regulation passes in 2025")',
+    scenario: 'What future state are you exploring? (e.g., "Competitor launches rival product")',
+    strategy: 'What strategic goal are you pursuing? (e.g., "Become market leader in 3 years")'
+  }
 
-  const buttonText = mode === 'decision'
-    ? 'Analyze'
-    : mode === 'forecast'
-    ? 'Analyze'
-    : mode === 'scenario'
-    ? 'Set Target'
-    : 'Build Strategy'
+  const buttonLabels: Record<string, string> = {
+    decision: 'Analyze Consequences',
+    forecast: 'Trace Causes',
+    scenario: 'Explore Scenario',
+    strategy: 'Build Strategy'
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 flex-1 max-w-4xl">
-      <input
-        type="text"
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder={placeholder}
-        disabled={isGenerating}
-        className="flex-1 min-w-0 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:text-gray-500 dark:disabled:text-gray-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-      />
-      <button
-        type="submit"
-        disabled={!input.trim() || isGenerating}
-        className="flex items-center gap-2 px-6 py-2 bg-blue-600 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+    <form onSubmit={handleSubmit} className="w-full">
+      <div
+        className={`
+          relative flex items-center gap-3 p-2 rounded-xl transition-all duration-200
+          ${isFocused
+            ? 'bg-[var(--bg-elevated)] ring-2 ring-[var(--accent-gold)] shadow-[var(--shadow-glow)]'
+            : 'bg-[var(--bg-surface)] border border-[var(--border-subtle)] hover:border-[var(--border-medium)]'
+          }
+        `}
       >
-        {isGenerating ? (
-          <>
-            <Loader2 size={16} className="animate-spin" />
-            Generating...
-          </>
-        ) : (
-          <>
-            <Send size={16} />
-            {buttonText}
-          </>
-        )}
-      </button>
+        {/* Sparkle icon */}
+        <div className="pl-2">
+          <Sparkles
+            size={20}
+            className={`transition-colors duration-200 ${isFocused ? 'text-[var(--accent-gold)]' : 'text-[var(--text-muted)]'}`}
+          />
+        </div>
+
+        {/* Input field */}
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          placeholder={placeholders[mode]}
+          disabled={isGenerating}
+          className="
+            flex-1 bg-transparent border-none outline-none
+            text-[var(--text-primary)] placeholder-[var(--text-muted)]
+            text-base py-2
+            disabled:opacity-50
+          "
+          style={{ fontFamily: 'var(--font-body)' }}
+        />
+
+        {/* Submit button */}
+        <button
+          type="submit"
+          disabled={!input.trim() || isGenerating}
+          className={`
+            cw-btn cw-btn-primary
+            ${!input.trim() || isGenerating ? 'opacity-50 cursor-not-allowed' : ''}
+          `}
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Analyzing...</span>
+            </>
+          ) : (
+            <>
+              <Send size={16} />
+              <span>{buttonLabels[mode]}</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Subtle hint below */}
+      <p className="mt-2 text-xs text-center" style={{ color: 'var(--text-muted)' }}>
+        Tip: Separate multiple items with commas to analyze them together
+      </p>
     </form>
   )
 }
