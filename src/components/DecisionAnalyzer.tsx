@@ -37,6 +37,7 @@ import { GoalClarifierButton } from './GoalClarifierButton'
 import { GoalClarifierModal } from './GoalClarifierModal'
 import { SimulationButton } from './simulation/SimulationButton'
 import { SimulationModal } from './simulation/SimulationModal'
+import { AnalysisToolbar } from './AnalysisToolbar'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { useOnboarding } from '@/hooks/useOnboarding'
 import { useScreenshot } from '@/hooks/useScreenshot'
@@ -1734,153 +1735,39 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
 
           {/* Context Actions (when analysis is active) */}
           {(nodes.length > 0 || (mode.type === 'scenario' && scenarioData.data) || (mode.type === 'strategy' && strategyData.data)) && (
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)] stagger-children">
-              {/* Topic Suggestions */}
-              <TopicSuggestionButton
-                onOpenSuggestions={handleTopicSuggestions}
-                isGenerating={topicSuggestionModal.loading}
-                hasDocuments={hasDocuments}
-                disabled={isGenerating || isGeneratingDeepLayer || isSharing}
-              />
-
-              {/* Add Context */}
-              {(hasDocuments) && (
-                <button
-                  onClick={() => setDataSourceBrowserOpen(true)}
-                  className="cw-btn cw-btn-secondary"
-                  title="Add context from connected sources"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14M5 12h14"/>
-                  </svg>
-                  Add Context
-                </button>
-              )}
-
-              <div className="w-px h-6 bg-[var(--border-subtle)]" />
-
-              {/* Analysis Actions */}
-              {mode.type === 'scenario' && mode.rootInput ? (
-                <>
-                  <ScenarioButton
-                    onOpenScenario={handleScenarioAnalysis}
-                    isGenerating={scenarioData.loading}
-                    hasAnalysis={mode.rootInput.length > 0}
-                    disabled={false}
-                  />
-                  {scenarioData.data && (
-                    <GetWeirdButton
-                      onGetWeird={handleGetWeird}
-                      isGenerating={weirdAnalysisModal.loading}
-                      hasAnalysis={true}
-                      disabled={scenarioData.loading || weirdAnalysisModal.loading}
-                    />
-                  )}
-                </>
-              ) : (nodes.length > 0) ? (
-                <>
-                  <RerunAnalysisButton
-                    onRerun={handleRerunAnalysis}
-                    isGenerating={isGenerating}
-                    hasAnalysis={nodes.length > 0}
-                    analysisType={mode.type}
-                    disabled={isGeneratingDeepLayer || devilsAdvocateModal.loading || steelmanModal.loading || isSharing}
-                  />
-                  <DevilsAdvocateButton
-                    onOpenDevilsAdvocate={handleDevilsAdvocate}
-                    isGenerating={devilsAdvocateModal.loading}
-                    hasAnalysis={nodes.length > 0}
-                    analysisType={mode.type}
-                    disabled={isGenerating || isGeneratingDeepLayer || isSharing || steelmanModal.loading}
-                  />
-                  <SteelmanButton
-                    onOpenSteelman={handleSteelman}
-                    isGenerating={steelmanModal.loading}
-                    hasAnalysis={nodes.length > 0}
-                    analysisType={mode.type}
-                    disabled={isGenerating || isGeneratingDeepLayer || isSharing || devilsAdvocateModal.loading}
-                  />
-                  <WargamingButton
-                    onOpenWargaming={handleWargaming}
-                    isGenerating={wargamingModal.loading}
-                    hasAnalysis={nodes.length > 0}
-                    analysisType={mode.type}
-                    disabled={isGenerating || isGeneratingDeepLayer || isSharing || devilsAdvocateModal.loading || steelmanModal.loading}
-                  />
-                  <GetWeirdButton
-                    onGetWeird={handleGetWeird}
-                    isGenerating={weirdAnalysisModal.loading}
-                    hasAnalysis={nodes.length > 0}
-                    disabled={isGenerating || isGeneratingDeepLayer || isSharing || weirdAnalysisModal.loading || devilsAdvocateModal.loading || steelmanModal.loading}
-                  />
-                  <SimulationButton
-                    onClick={handleOpenSimulation}
-                    disabled={isGenerating || isGeneratingDeepLayer || isSharing || simulation.state.status === 'running'}
-                    hasAnalysis={nodes.length > 0}
-                  />
-                </>
-              ) : null}
-
-              <div className="flex-1" />
-
-              {/* Right-side actions */}
-              {nodes.length > 0 && (
-                <>
-                  <ShareAnalysisButton
-                    onShare={handleShareAnalysis}
-                    isSharing={isSharing}
-                    hasAnalysis={nodes.length > 0 || (mode.type === 'scenario' && !!scenarioData.data)}
-                    analysisType={mode.type}
-                    hasDocuments={hasDocuments}
-                    disabled={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading || steelmanModal.loading}
-                  />
-                  <LayoutControls
-                    onAutoLayout={handleAutoLayout}
-                    onFitView={handleFitView}
-                    isGenerating={isGenerating || isGeneratingDeepLayer || devilsAdvocateModal.loading || steelmanModal.loading || isSharing}
-                  />
-                  {isExpertMode && (
-                    <DeepLayerButton
-                      onGenerateDeepLayer={handleGenerateDeepLayer}
-                      isGenerating={isGeneratingDeepLayer}
-                      currentMaxOrder={currentMaxOrder}
-                      maxAllowedOrder={maxAllowedOrder}
-                      disabled={isGenerating || devilsAdvocateModal.loading || scenarioData.loading || isSharing}
-                    />
-                  )}
-
-                  <div className="w-px h-6 bg-[var(--border-subtle)]" />
-
-                  {/* Export Actions */}
-                  <button
-                    onClick={handleExportPowerPoint}
-                    className="cw-btn cw-btn-ghost"
-                    title="Export as PowerPoint"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                      <polyline points="7 10 12 15 17 10"/>
-                      <line x1="12" x2="12" y1="15" y2="3"/>
-                    </svg>
-                    PPT
-                  </button>
-                  <button
-                    onClick={handleExportWord}
-                    className="cw-btn cw-btn-ghost"
-                    title="Export as Word"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                      <line x1="16" x2="8" y1="13" y2="13"/>
-                      <line x1="16" x2="8" y1="17" y2="17"/>
-                      <line x1="10" x2="8" y1="9" y2="9"/>
-                    </svg>
-                    Word
-                  </button>
-                </>
-              )}
-            </div>
+            <AnalysisToolbar
+              mode={mode}
+              hasAnalysis={nodes.length > 0}
+              hasDocuments={hasDocuments}
+              isExpertMode={isExpertMode}
+              isGenerating={isGenerating}
+              isGeneratingDeepLayer={isGeneratingDeepLayer}
+              isSharing={isSharing}
+              devilsAdvocateLoading={devilsAdvocateModal.loading}
+              steelmanLoading={steelmanModal.loading}
+              wargamingLoading={wargamingModal.loading}
+              weirdLoading={weirdAnalysisModal.loading}
+              scenarioLoading={scenarioData.loading}
+              simulationRunning={simulation.state.status === 'running'}
+              topicSuggestionLoading={topicSuggestionModal.loading}
+              currentMaxOrder={currentMaxOrder}
+              maxAllowedOrder={maxAllowedOrder}
+              onTopicSuggestions={handleTopicSuggestions}
+              onAddContext={() => setDataSourceBrowserOpen(true)}
+              onRerunAnalysis={handleRerunAnalysis}
+              onDevilsAdvocate={handleDevilsAdvocate}
+              onSteelman={handleSteelman}
+              onWargaming={handleWargaming}
+              onGetWeird={handleGetWeird}
+              onSimulation={handleOpenSimulation}
+              onScenarioAnalysis={handleScenarioAnalysis}
+              onShare={handleShareAnalysis}
+              onAutoLayout={handleAutoLayout}
+              onFitView={handleFitView}
+              onDeepLayer={handleGenerateDeepLayer}
+              onExportPowerPoint={handleExportPowerPoint}
+              onExportWord={handleExportWord}
+            />
           )}
         </div>
       </header>
