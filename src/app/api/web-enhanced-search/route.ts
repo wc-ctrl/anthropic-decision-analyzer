@@ -40,7 +40,7 @@ async function conductEnhancedWebSearch(
   const searchStrategy = generateSearchStrategy(input, analysisType, selectedScaffolds, isNonUSFocused)
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 3000,
     messages: [{
       role: 'user',

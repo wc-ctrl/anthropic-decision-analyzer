@@ -48,7 +48,7 @@ async function generateFocusedSubAnalysis(
   const nodeCount = isExpertMode ? { first: 5, second: 2 } : { first: 3, second: 1 }
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2500,
     messages: [{
       role: 'user',
@@ -65,7 +65,7 @@ ${contextualData.slack ? contextualData.slack.map((msg: any) => `- Slack: ${msg.
 ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `- Doc: ${doc.excerpt}`).join('\n') : ''}
 ` : ''}
 
-TASK: Create a focused ${parentAnalysisType === 'decision' ? 'consequence analysis' : 'causal analysis'} specifically for this node.
+TASK: Create a focused deep-dive analysis specifically for this node.
 
 ${parentAnalysisType === 'decision' ? `
 Treating "${focusNode.data.label}" as a decision point, generate:
@@ -74,7 +74,7 @@ Treating "${focusNode.data.label}" as a decision point, generate:
 
 Focus on the specific implications, implementation challenges, and downstream effects
 of this particular consequence within the broader strategic context.
-` : `
+` : parentAnalysisType === 'forecast' ? `
 Treating "${focusNode.data.label}" as an outcome to understand, generate:
 1. EXACTLY ${nodeCount.first} first-order causes that specifically led to this factor
 2. For EACH first-order cause, EXACTLY ${nodeCount.second} second-order cause(s)
@@ -82,6 +82,18 @@ Treating "${focusNode.data.label}" as an outcome to understand, generate:
 
 Focus on the specific drivers, preconditions, and enabling factors
 that would make this particular outcome materialize.
+` : parentAnalysisType === 'scenario' ? `
+Treating "${focusNode.data.label}" as a scenario element, generate:
+1. EXACTLY ${nodeCount.first} first-order implications and sub-elements
+2. For EACH first-order element, EXACTLY ${nodeCount.second} second-order detail(s)
+
+Focus on specific aspects, variations, and detailed exploration of this scenario element.
+` : `
+Treating "${focusNode.data.label}" as a strategic element, generate:
+1. EXACTLY ${nodeCount.first} first-order considerations and sub-strategies
+2. For EACH first-order element, EXACTLY ${nodeCount.second} second-order tactical detail(s)
+
+Focus on implementation specifics, stakeholder considerations, and tactical execution of this strategic element.
 `}
 
 Generate a ${analysisStructure} structure with detailed analysis of this specific node's

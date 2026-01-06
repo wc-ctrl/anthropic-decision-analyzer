@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
 async function generateDecisionDevilsAdvocate(decision: string, contextualData?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2500,
     messages: [{
       role: 'user',
@@ -117,7 +117,7 @@ Be thorough, evidence-based, and probabilistically rigorous. Challenge assumptio
 
 async function generateCausalDevilsAdvocate(forecast: string, contextualData?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-5-20250929',
     max_tokens: 2500,
     messages: [{
       role: 'user',
