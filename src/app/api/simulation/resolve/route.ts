@@ -20,66 +20,107 @@ export async function POST(request: NextRequest) {
     }
 
     // Format actors and actions for the resolver
-    const actorMap = new Map(actors.map((a: Actor) => [a.id, a]))
-    const formattedActions = actions.map((action: ActorAction) => {
-      const actor = actorMap.get(action.actorId)
-      const target = action.targetActorId ? actorMap.get(action.targetActorId) : null
+    const actorMap = new Map(actors.map((a: any) => [a.id, a]))
+    const formattedActions = actions.map((action: ActorAction & { hiddenMotivation?: string; emotionalState?: string }) => {
+      const actor = actorMap.get(action.actorId) as any
+      const target = action.targetActorId ? actorMap.get(action.targetActorId) as any : null
       return {
         ...action,
         actorName: actor?.name || action.actorId,
-        targetName: target?.name || action.targetActorId
+        actorPersonality: actor?.personalityArchetype || 'unknown',
+        targetName: target?.name || action.targetActorId,
+        targetPersonality: target?.personalityArchetype
       }
     })
 
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4000,
+      max_tokens: 4500,
       messages: [{
         role: 'user',
-        content: `You are the neutral arbiter/game master for a multi-actor simulation. Evaluate all simultaneous actions and determine outcomes.
+        content: `You are resolving a round of a REALISTIC multi-actor simulation. Your job is to determine what ACTUALLY happens when these actors' actions collide.
+
+CRITICAL PRINCIPLES:
+1. CONFLICT IS NORMAL - Don't artificially resolve tensions. Real conflicts persist.
+2. COOPERATION IS RARE - When actors cooperate, someone usually benefits more.
+3. TRUST IS HARD TO BUILD - One cooperative act doesn't create allies.
+4. BETRAYAL IS COMMON - Especially from calculating_pragmatist and aggressive_opportunist types.
+5. PERSONALITY MATTERS - A wounded_revanchist won't just "get over it."
+6. POWER DYNAMICS - Strong actors often exploit weak ones, even "allies."
+7. INFORMATION IS IMPERFECT - Actors often misread each other's intentions.
 
 ORIGINAL CONTEXT:
 "${context}"
 
-CURRENT STATE OF ACTORS:
-${actors.map((a: Actor) => `
+CURRENT ACTOR STATES:
+${actors.map((a: any) => `
 ${a.name} (${a.type}):
+- Personality: ${a.personalityArchetype || 'calculating_pragmatist'}
 - State: ${a.currentState}
 - Resources: ${a.resources}/100
 - Influence: ${a.influence}/100
-- Goals: ${a.goals.join(', ')}
+- Public Goals: ${a.goals?.join(', ')}
+- Private Agenda: ${(a.privateAgenda || []).join(', ') || 'Unknown'}
+- Trust Disposition: ${a.trustDisposition || 'conditional'}
+- Fears: ${(a.fears || []).join(', ') || 'Unknown'}
 `).join('\n')}
 
-ROUND ${currentRound} ACTIONS (all taken simultaneously):
+ROUND ${currentRound} ACTIONS (simultaneous):
 ${formattedActions.map((a: any) => `
-${a.actorName}: ${a.actionType}${a.targetName ? ` → ${a.targetName}` : ''} (intensity: ${a.intensity})
-Reasoning: ${a.reasoning}
-Expected: ${a.expectedOutcome}
+${a.actorName} [${a.actorPersonality}]: ${a.actionType}${a.targetName ? ` → ${a.targetName}` : ''} (intensity: ${a.intensity})
+  Stated reasoning: ${a.reasoning}
+  Hidden motivation: ${a.hiddenMotivation || 'Unknown'}
+  Emotional state: ${a.emotionalState || 'Unknown'}
+  Expected outcome: ${a.expectedOutcome}
 `).join('\n')}
 
 ${previousRounds.length > 0 ? `
-PREVIOUS ROUNDS SUMMARY:
-${previousRounds.slice(-3).map((r: RoundResult) => `Round ${r.round}: ${r.narrativeSummary}`).join('\n')}
-` : ''}
+HISTORY (recent):
+${previousRounds.slice(-3).map((r: RoundResult) => `Round ${r.round}: ${r.narrativeSummary}
+  Equilibrium: ${r.equilibriumStatus}`).join('\n')}
+` : 'Round 1 - No history yet. Actors are sizing each other up.'}
 
-Your task:
-1. Identify any CONFLICTS between actions (actors working against each other)
-2. Determine the OUTCOME of each conflict
-3. Calculate STATE CHANGES for each actor (resources, influence, state, relationships)
-4. Identify any KEY MOMENTS that warrant attention
-5. Generate AI RECOMMENDATIONS for the next round
-6. Write a NARRATIVE SUMMARY of what happened
-7. Assess overall EQUILIBRIUM STATUS
+YOUR TASK - Resolve this round REALISTICALLY:
 
-KEY MOMENT TYPES (only flag if truly significant):
-- major_shift: Power balance changes significantly
-- conflict_peak: Conflict escalates without resolution
-- alliance_formed: New alliance created
-- alliance_broken: Alliance ends
-- inflection_point: Critical decision point reached
-- cascade_risk: Risk of chain reaction
-- actor_eliminated: Actor exits simulation
-- goal_achieved: Major goal accomplished
+1. CONFLICTS: Identify where actors are working against each other.
+   - Direct opposition: Both can't win
+   - Resource competition: Fighting over same thing
+   - Goal interference: One's success hurts another
+   - Consider personality clashes (zealot vs pragmatist, etc.)
+
+2. OUTCOMES: Determine winners/losers based on:
+   - Resources and influence (but not deterministically!)
+   - Personality fit for the action (aggressive types better at attacking)
+   - Risk taken vs reward gained
+   - Lucky/unlucky breaks (add some randomness)
+
+3. STATE CHANGES: Calculate realistic consequences:
+   - Winning costs resources too (pyrrhic victories are real)
+   - Failed cooperation breeds resentment
+   - Successful aggression invites retaliation
+   - Influence shifts based on perception, not just reality
+
+4. RELATIONSHIP CHANGES: How do actors view each other now?
+   - Did anyone reveal their true colors?
+   - Were there perceived betrayals?
+   - Did attempted cooperation actually build trust? (Usually not immediately)
+
+5. KEY MOMENTS: Only flag truly significant events:
+   - major_shift, conflict_peak, alliance_formed, alliance_broken
+   - inflection_point, cascade_risk, actor_eliminated, goal_achieved
+
+6. EQUILIBRIUM: How stable is the situation?
+   - stable: No major tensions, unlikely to change
+   - unstable: Tensions exist but contained
+   - shifting: Active changes underway
+   - volatile: Could explode any moment
+
+IMPORTANT:
+- Don't be a peacemaker. Let conflicts simmer and escalate.
+- Cooperation attempts often fail or backfire.
+- Winning isn't free - it creates enemies and costs resources.
+- Personality archetypes should STRONGLY influence outcomes.
+- Add drama and unexpected consequences.
 
 Return ONLY valid JSON:
 {
@@ -88,29 +129,39 @@ Return ONLY valid JSON:
       "id": "conflict_1",
       "actorIds": ["actor_1", "actor_2"],
       "conflictType": "direct_opposition",
-      "description": "What happened",
-      "resolution": "How it was resolved",
-      "winner": "actor_1",
-      "loser": "actor_2",
-      "outcome": "decisive"
+      "description": "What happened between them",
+      "resolution": "How it played out (not necessarily 'resolved')",
+      "winner": "actor_id_or_null",
+      "loser": "actor_id_or_null",
+      "outcome": "decisive|stalemate|partial|escalated",
+      "futureTension": "What this means for their relationship going forward"
     }
   ],
   "stateChanges": [
     {
       "actorId": "actor_1",
-      "field": "resources",
+      "field": "resources|influence|currentState|relationships",
       "previousValue": 70,
-      "newValue": 65,
-      "reason": "Cost of action"
+      "newValue": 60,
+      "reason": "Why this changed"
+    }
+  ],
+  "relationshipShifts": [
+    {
+      "actor1": "actor_id",
+      "actor2": "actor_id",
+      "previousStrength": 20,
+      "newStrength": -10,
+      "reason": "Why the relationship changed"
     }
   ],
   "keyMoments": [
     {
       "id": "moment_1",
-      "type": "major_shift",
+      "type": "conflict_peak",
       "round": ${currentRound},
       "description": "What happened and why it matters",
-      "significance": "major",
+      "significance": "minor|moderate|major|critical",
       "involvedActors": ["actor_1"],
       "implications": ["What this means going forward"],
       "shouldPause": true
@@ -120,26 +171,25 @@ Return ONLY valid JSON:
     {
       "id": "rec_1",
       "targetActor": "actor_1",
-      "suggestedAction": "negotiate",
-      "reasoning": "Why this is advisable",
+      "suggestedAction": "action_type",
+      "reasoning": "Strategic advice",
       "expectedImpact": "What could happen",
-      "riskLevel": "medium",
-      "urgency": "high"
+      "riskLevel": "low|medium|high",
+      "urgency": "low|medium|high"
     }
   ],
-  "narrativeSummary": "2-3 sentence summary of round ${currentRound}",
-  "equilibriumStatus": "shifting",
+  "narrativeSummary": "2-4 sentence dramatic summary of Round ${currentRound}. Include tension, conflict, and consequences.",
+  "equilibriumStatus": "stable|unstable|shifting|volatile",
+  "unresolvedTensions": ["Tension that will continue to next round", "Another simmering issue"],
   "isComplete": false,
   "completionReason": null
 }
 
-conflictType: direct_opposition, resource_competition, goal_interference, chain_reaction
-outcome: decisive, stalemate, partial, escalated
-significance: minor, moderate, major, critical
-equilibriumStatus: stable, unstable, shifting, volatile
-isComplete: true if simulation should end (all goals achieved, all actors eliminated, stalemate reached)
-
-Be realistic but dramatic. Let consequences flow naturally from actions. Don't be afraid to let actors fail or succeed based on their choices and circumstances.`
+isComplete ONLY if:
+- All but one actor eliminated
+- A decisive victory makes continuation pointless
+- Complete stalemate with no possible moves
+- 10+ rounds of unchanging deadlock`
       }]
     })
 
@@ -153,20 +203,21 @@ Be realistic but dramatic. Let consequences flow naturally from actions. Don't b
       result = JSON.parse(jsonText)
     } catch (parseError) {
       console.error('JSON parsing failed:', parseError)
-      // Return a basic result
       result = {
         conflicts: [],
         stateChanges: [],
+        relationshipShifts: [],
         keyMoments: [],
         recommendations: [],
-        narrativeSummary: `Round ${currentRound}: Actions were taken but outcomes remain uncertain.`,
-        equilibriumStatus: 'shifting',
+        narrativeSummary: `Round ${currentRound}: Tensions simmer as actors maneuver for position. No clear resolution emerges.`,
+        equilibriumStatus: 'unstable',
+        unresolvedTensions: ['Multiple actors pursuing incompatible goals'],
         isComplete: false
       }
     }
 
     // Apply state changes to actors
-    const updatedActors = applyStateChanges(actors, result.stateChanges || [], actions)
+    const updatedActors = applyStateChanges(actors, result.stateChanges || [], actions, result.relationshipShifts || [])
 
     // Ensure IDs on all items
     const conflicts: ActionConflict[] = (result.conflicts || []).map((c: any) => ({
@@ -191,9 +242,9 @@ Be realistic but dramatic. Let consequences flow naturally from actions. Don't b
       conflicts,
       stateChanges: result.stateChanges || [],
       keyMoments,
-      narrativeSummary: result.narrativeSummary || `Round ${currentRound} completed.`,
+      narrativeSummary: result.narrativeSummary || `Round ${currentRound} completed with ongoing tensions.`,
       recommendations,
-      equilibriumStatus: result.equilibriumStatus || 'shifting'
+      equilibriumStatus: result.equilibriumStatus || 'unstable'
     }
 
     // Check if should pause
@@ -206,7 +257,8 @@ Be realistic but dramatic. Let consequences flow naturally from actions. Don't b
       shouldPause,
       pauseReason,
       isComplete: result.isComplete || false,
-      completionReason: result.completionReason
+      completionReason: result.completionReason,
+      unresolvedTensions: result.unresolvedTensions || []
     })
   } catch (error) {
     console.error('Simulation resolve error:', error)
@@ -217,8 +269,13 @@ Be realistic but dramatic. Let consequences flow naturally from actions. Don't b
   }
 }
 
-function applyStateChanges(actors: Actor[], stateChanges: StateChange[], actions: ActorAction[]): Actor[] {
-  const actorsCopy: Actor[] = JSON.parse(JSON.stringify(actors))
+function applyStateChanges(
+  actors: any[],
+  stateChanges: StateChange[],
+  actions: ActorAction[],
+  relationshipShifts: any[]
+): any[] {
+  const actorsCopy: any[] = JSON.parse(JSON.stringify(actors))
 
   // Apply resource costs from actions
   for (const action of actions) {
@@ -244,15 +301,31 @@ function applyStateChanges(actors: Actor[], stateChanges: StateChange[], actions
         const prevState = actor.currentState
         actor.currentState = change.newValue as Actor['currentState']
         actor.stateHistory.push({
-          round: 0, // Will be set correctly
+          round: 0,
           previousState: prevState,
           newState: actor.currentState,
           reason: change.reason
         })
         break
-      case 'relationships':
-        // Handle relationship changes if needed
-        break
+    }
+  }
+
+  // Apply relationship shifts
+  for (const shift of relationshipShifts) {
+    const actor = actorsCopy.find(a => a.id === shift.actor1)
+    if (!actor) continue
+
+    const existingRel = actor.relationships?.find((r: any) => r.targetActorId === shift.actor2)
+    if (existingRel) {
+      existingRel.strength = shift.newStrength
+      existingRel.history = (existingRel.history || '') + ` | Round: ${shift.reason}`
+    } else if (actor.relationships) {
+      actor.relationships.push({
+        targetActorId: shift.actor2,
+        type: shift.newStrength > 20 ? 'ally' : shift.newStrength < -20 ? 'rival' : 'neutral',
+        strength: shift.newStrength,
+        history: shift.reason
+      })
     }
   }
 
