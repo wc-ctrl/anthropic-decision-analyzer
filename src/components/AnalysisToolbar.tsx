@@ -104,7 +104,7 @@ export function AnalysisToolbar({
   const showNodeActions = hasAnalysis && !isScenarioMode && !isStrategyMode
 
   return (
-    <div className="flex items-center gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)]">
+    <div className="relative flex items-center gap-2 mt-4 pt-4 border-t border-[var(--border-subtle)]">
       {/* Left Section: Discovery */}
       <div className="flex items-center gap-2">
         <button
@@ -190,7 +190,7 @@ export function AnalysisToolbar({
               </button>
 
               {moreToolsOpen && (
-                <div className="absolute top-full left-0 mt-1 w-56 rounded-lg shadow-lg z-50 overflow-hidden"
+                <div className="absolute top-full left-0 mt-1 w-56 rounded-lg shadow-lg z-[100] overflow-hidden"
                      style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
                   <div className="py-1">
                     <button
@@ -324,7 +324,7 @@ export function AnalysisToolbar({
             </button>
 
             {exportMenuOpen && (
-              <div className="absolute top-full right-0 mt-1 w-40 rounded-lg shadow-lg z-50 overflow-hidden"
+              <div className="absolute top-full right-0 mt-1 w-40 rounded-lg shadow-lg z-[100] overflow-hidden"
                    style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-subtle)' }}>
                 <div className="py-1">
                   <button
