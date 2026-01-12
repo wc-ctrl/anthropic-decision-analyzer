@@ -55,7 +55,7 @@ export function SimulationKeyMomentAlert({ moment, actors, onContinue, onPause }
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[250] p-4">
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-lg w-full overflow-hidden animate-pulse-once">
         {/* Header */}
         <div className={`p-6 ${getSignificanceColor(moment.significance)} border-b`}>

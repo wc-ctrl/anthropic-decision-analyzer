@@ -1622,7 +1622,7 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
   return (
     <div className="h-screen" style={{ background: 'var(--bg-deep)' }}>
       {/* Header */}
-      <header className="cw-header px-6 py-4">
+      <header className="cw-header px-6 py-4 relative z-50">
         <div className="max-w-[1800px] mx-auto">
           {/* Top Row: Brand + Utilities */}
           <div className="flex justify-between items-center mb-5">
