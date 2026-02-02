@@ -46,8 +46,8 @@ async function generateQuickAssessment(nodes: DecisionNode[], analysisType: stri
   ).join('\n')
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 1500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 3000,
     messages: [{
       role: 'user',
       content: `You are a senior strategic advisor providing rapid executive assessments. Your role is to give a clear, opinionated verdict on whether this decision should be pursued.

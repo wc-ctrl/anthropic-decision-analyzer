@@ -65,8 +65,8 @@ async function handleNodeEdit(
   contextualData?: any
 ) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are an expert decision analyst specializing in dynamic graph updating and logical consistency.
@@ -160,8 +160,8 @@ async function handleNodeDelete(
   )
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are an expert decision analyst specializing in intelligent tree restructuring.
@@ -276,8 +276,8 @@ async function handleNodeAdd(
 ) {
   // Handle manual node additions with intelligent suggestions
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2000,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 4000,
     messages: [{
       role: 'user',
       content: `You are an expert decision analyst helping with intelligent node addition.

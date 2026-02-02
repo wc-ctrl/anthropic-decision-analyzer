@@ -55,8 +55,8 @@ async function generateWeirdAnalysis(
     .join('\n')
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are an expert strategic analyst specializing in unconventional thinking and overlooked possibilities. Your role is to surface plausible but non-obvious implications that executives might dismiss too quickly.
@@ -163,8 +163,8 @@ Focus on intellectually rigorous unconventional thinking that reveals diagnostic
 
 async function selectIntuitionPumps(input: string, analysisType: string, existingNodes: DecisionNode[]) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 1000,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 2000,
     messages: [{
       role: 'user',
       content: `You are an expert in cognitive frameworks and unconventional thinking patterns.

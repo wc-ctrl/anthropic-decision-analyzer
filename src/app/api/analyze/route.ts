@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
 
 async function generateConsequences(decision: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2000,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 4000,
     messages: [{
       role: 'user',
       content: `You are an expert business analyst helping executives analyze decisions.
@@ -262,8 +262,8 @@ ANALYSIS VARIATION: This is a fresh analysis run. Explore different angles and a
 
 async function generateCausalPathways(forecast: string, contextualData?: any, timestamp?: number, scaffolds?: any, isExpertMode: boolean = true, firstOrderCount: number = 5, secondOrderCount: number = 2, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2000,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 4000,
     messages: [{
       role: 'user',
       content: `You are an expert superforecaster trained in the methodology of Philip Tetlock and the Good Judgment Project. You understand base rates, reference class forecasting, and probabilistic reasoning.
@@ -432,8 +432,8 @@ async function generateMultiRootAnalysis(
   if (inputs.length > 1) {
     try {
       const crossRootResponse = await anthropic.messages.create({
-        model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 1500,
+        model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+        max_tokens: 3000,
         messages: [{
           role: 'user',
           content: `You are analyzing the causal relationships between multiple ${type === 'decision' ? 'decisions' : 'forecasts/outcomes'}.

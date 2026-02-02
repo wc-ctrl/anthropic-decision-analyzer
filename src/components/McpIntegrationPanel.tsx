@@ -67,10 +67,17 @@ export function McpIntegrationPanel({
   }, [])
 
   const fetchDocuments = async () => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) {
+      setLoading(false)
+      return
+    }
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
-      const response = await fetch(`${backendUrl}/api/documents`)
-      if (response.ok) {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 5000)
+      const response = await fetch(`${backendUrl}/api/documents`, { signal: controller.signal })
+      clearTimeout(timeout)
+      if (response.ok && response.headers.get('content-type')?.includes('json')) {
         const data = await response.json()
         setDocuments(data.documents || [])
       }
@@ -82,15 +89,21 @@ export function McpIntegrationPanel({
   }
 
   const checkSlackStatus = async () => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) {
+      setSlackLoading(false)
+      return
+    }
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
-      const response = await fetch(`${backendUrl}/api/slack/status`)
-      if (response.ok) {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 5000)
+      const response = await fetch(`${backendUrl}/api/slack/status`, { signal: controller.signal })
+      clearTimeout(timeout)
+      if (response.ok && response.headers.get('content-type')?.includes('json')) {
         const data = await response.json()
         setSlackUser(data.slackUser)
         setAvailableChannels(data.availableChannels || [])
         setPopularChannels(data.popularChannels || [])
-        // Auto-enable if user has channels selected
         if (selectedChannels.length > 0 && !slackEnabled) {
           onSlackToggle(true)
         }

@@ -9,7 +9,7 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { input, contextualData } = body
+    const { input, contextualData, webContext } = body
 
     if (!process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY) {
       return NextResponse.json(
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const analysis = await generateScenarioAnalysis(input, contextualData)
+    const analysis = await generateScenarioAnalysis(input, contextualData, webContext)
     return NextResponse.json(analysis)
   } catch (error) {
     console.error('Scenario analysis error:', error)
@@ -29,10 +29,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateScenarioAnalysis(outcome: string, contextualData?: any) {
+async function generateScenarioAnalysis(outcome: string, contextualData?: any, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 3000,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 8000,
     messages: [{
       role: 'user',
       content: `You are an expert strategic forecaster specializing in scenario planning and signpost methodology. You understand probabilistic reasoning, superforecasting techniques, and strategic intelligence analysis.
@@ -43,6 +43,13 @@ ${contextualData ? `
 ORGANIZATIONAL CONTEXT:
 Slack Conversations: ${contextualData.slack ? contextualData.slack.map((msg: any) => `${msg.content}`).join('; ') : 'None'}
 Google Drive Documents: ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `${doc.excerpt}`).join('; ') : 'None'}
+` : ''}
+
+${webContext?.contextualIntelligence ? `
+REAL-TIME WEB INTELLIGENCE:
+${webContext.contextualIntelligence.substring(0, 1500)}
+
+Use this real-time information to ground your scenario analysis in current facts and trends.
 ` : ''}
 
 Generate a comprehensive scenario analysis with 6 distinct probability tracks, each with 5 tiers of signposts that would indicate we're on that particular track.

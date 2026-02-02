@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 
 // Generate or retrieve session ID
 function getSessionId(): string {
@@ -32,6 +32,7 @@ async function logEvent(type: string, data?: any) {
 
 export function useAnalytics() {
   const hasLoggedVisit = useRef(false)
+  const sessionStart = useRef(Date.now())
 
   useEffect(() => {
     // Log visit once per session
@@ -39,18 +40,56 @@ export function useAnalytics() {
       logEvent('visit')
       hasLoggedVisit.current = true
     }
+
+    // Log session duration on unload
+    const handleUnload = () => {
+      const durationSec = Math.round((Date.now() - sessionStart.current) / 1000)
+      // Use sendBeacon for reliability on page close
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+      navigator.sendBeacon?.(
+        `${backendUrl}/api/analytics/log`,
+        JSON.stringify({
+          type: 'session_end',
+          sessionId: getSessionId(),
+          data: { durationSec }
+        })
+      )
+    }
+
+    window.addEventListener('beforeunload', handleUnload)
+    return () => window.removeEventListener('beforeunload', handleUnload)
   }, [])
 
-  const logQuery = (query: string, analysisType: string) => {
+  const logQuery = useCallback((query: string, analysisType: string) => {
     logEvent('query', { query, analysisType })
-  }
+  }, [])
 
-  const logFeatureUse = (feature: string) => {
+  const logFeatureUse = useCallback((feature: string) => {
     logEvent('feature_use', { feature })
-  }
+  }, [])
+
+  const logModeSwitch = useCallback((fromMode: string, toMode: string) => {
+    logEvent('mode_switch', { fromMode, toMode })
+  }, [])
+
+  const logFrameworkSelect = useCallback((frameworkId: string, frameworkName: string) => {
+    logEvent('framework_select', { frameworkId, frameworkName })
+  }, [])
+
+  const logExport = useCallback((format: string) => {
+    logEvent('export', { format })
+  }, [])
+
+  const logShare = useCallback((channel: string) => {
+    logEvent('share', { channel })
+  }, [])
 
   return {
     logQuery,
-    logFeatureUse
+    logFeatureUse,
+    logModeSwitch,
+    logFrameworkSelect,
+    logExport,
+    logShare
   }
 }

@@ -59,8 +59,8 @@ async function generateCommentary(
     }[triggeredBy]
 
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-5-20250929',
-      max_tokens: 1000,
+      model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+      max_tokens: 2000,
       messages: [{
         role: 'user',
         content: `You are a senior strategic advisor providing executive briefings on decision analysis. Your audience is C-level executives who need concise, actionable intelligence.

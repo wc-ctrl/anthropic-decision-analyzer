@@ -59,8 +59,8 @@ export async function POST(request: NextRequest) {
 
 async function generateTopicSuggestions(userContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are an expert strategic intelligence analyst specializing in personalized strategic analysis topic generation. Your role is to analyze user activity and generate relevant, high-value strategic analysis suggestions.
