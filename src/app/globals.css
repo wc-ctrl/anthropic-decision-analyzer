@@ -1,5 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
 
 /* ═══════════════════════════════════════════════════════════════
    CLAUDESWITZ DESIGN SYSTEM
@@ -41,10 +42,8 @@
   --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.4);
   --shadow-glow: 0 0 30px rgba(212, 168, 83, 0.1);
 
-  /* Typography */
-  --font-display: 'Fraunces', Georgia, serif;
-  --font-body: 'DM Sans', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+  /* Typography - font families set by next/font via CSS variables
+     --font-display, --font-body, --font-mono are injected on <html> */
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -59,24 +58,22 @@
   --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Light mode overrides */
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg-deep: #f8f5f0;
-    --bg-surface: #ffffff;
-    --bg-elevated: #ffffff;
-    --bg-hover: #f0ebe4;
+/* Light mode overrides (class-based toggle) */
+:root:not(.dark) {
+  --bg-deep: #f8f5f0;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-hover: #f0ebe4;
 
-    --text-primary: #1a1612;
-    --text-secondary: #5c554d;
-    --text-muted: #8c857d;
+  --text-primary: #1a1612;
+  --text-secondary: #5c554d;
+  --text-muted: #8c857d;
 
-    --border-subtle: rgba(28, 24, 20, 0.08);
-    --border-medium: rgba(28, 24, 20, 0.15);
+  --border-subtle: rgba(28, 24, 20, 0.08);
+  --border-medium: rgba(28, 24, 20, 0.15);
 
-    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
-    --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.08);
-  }
+  --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-medium: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -94,7 +91,7 @@ html {
 body {
   background: var(--bg-deep);
   color: var(--text-primary);
-  font-family: var(--font-body);
+  font-family: var(--font-body), -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.6;
   letter-spacing: -0.01em;
@@ -121,18 +118,18 @@ body::before {
    ───────────────────────────────────────────────────────────────── */
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-display);
+  font-family: var(--font-display), Georgia, serif;
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.2;
 }
 
 .font-display {
-  font-family: var(--font-display);
+  font-family: var(--font-display), Georgia, serif;
 }
 
 .font-mono {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono), 'SF Mono', monospace;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -152,7 +149,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 0.5rem;
   padding: 0.625rem 1rem;
-  font-family: var(--font-body);
+  font-family: var(--font-body), -apple-system, sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -222,7 +219,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   padding: 0.75rem 1rem;
-  font-family: var(--font-body);
+  font-family: var(--font-body), -apple-system, sans-serif;
   font-size: 0.9375rem;
   color: var(--text-primary);
   transition: all var(--transition-fast);
@@ -323,7 +320,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .cw-empty-state-title {
-  font-family: var(--font-display);
+  font-family: var(--font-display), Georgia, serif;
   font-size: 1.5rem;
   font-weight: 500;
   color: var(--text-primary);

@@ -34,8 +34,8 @@ export async function POST(request: NextRequest) {
     })
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4500,
+      model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+      max_tokens: 8000,
       messages: [{
         role: 'user',
         content: `You are resolving a round of a REALISTIC multi-actor simulation. Your job is to determine what ACTUALLY happens when these actors' actions collide.

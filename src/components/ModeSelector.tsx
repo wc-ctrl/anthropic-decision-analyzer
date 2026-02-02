@@ -1,11 +1,13 @@
 'use client'
 
 import React from 'react'
-import { GitBranch, TrendingUp, Target, Map } from 'lucide-react'
+import { GitBranch, TrendingUp, Target, Map, LayoutGrid } from 'lucide-react'
+
+type ModeType = 'decision' | 'forecast' | 'scenario' | 'strategy' | 'framework'
 
 interface ModeSelectorProps {
-  currentMode: 'decision' | 'forecast' | 'scenario' | 'strategy'
-  onModeChange: (mode: 'decision' | 'forecast' | 'scenario' | 'strategy') => void
+  currentMode: ModeType
+  onModeChange: (mode: ModeType) => void
 }
 
 export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
@@ -54,6 +56,17 @@ export function ModeSelector({ currentMode, onModeChange }: ModeSelectorProps) {
       >
         <Map size={16} />
         Strategy Mode
+      </button>
+      <button
+        onClick={() => onModeChange('framework')}
+        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+          currentMode === 'framework'
+            ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-sm'
+            : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+        }`}
+      >
+        <LayoutGrid size={16} />
+        Frameworks
       </button>
     </div>
   )

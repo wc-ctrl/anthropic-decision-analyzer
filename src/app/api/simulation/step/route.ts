@@ -65,8 +65,8 @@ async function generateActorAction(
     )
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1500,
+      model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+      max_tokens: 4000,
       messages: [{
         role: 'user',
         content: `You ARE ${actor.name}. Not simulating - you ARE this actor. Think and decide as they would.

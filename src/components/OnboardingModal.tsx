@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { X, ChevronRight, ChevronLeft, GitBranch, TrendingUp, Target, Map, Zap, BookOpen, CheckCircle2 } from 'lucide-react'
 
-type ModeType = 'decision' | 'forecast' | 'scenario' | 'strategy'
+type ModeType = 'decision' | 'forecast' | 'scenario' | 'strategy' | 'framework'
 
 interface OnboardingStep {
   title: string
@@ -164,6 +164,33 @@ const modeOnboarding: Record<ModeType, { title: string; icon: React.ReactNode; c
           'Pay special attention to the Integration section',
           'Look for gaps between ends and means',
           'Check if assumptions are testable and monitored'
+        ]
+      }
+    ]
+  },
+  framework: {
+    title: 'Consulting Frameworks',
+    icon: <CheckCircle2 size={24} />,
+    color: 'teal',
+    steps: [
+      {
+        title: 'What are Consulting Frameworks?',
+        description: 'Apply 50+ proven strategic frameworks to any business case. From SWOT and Porter\'s Five Forces to Build vs. Buy and RICE Scoring, each framework provides a structured lens for analysis.',
+        icon: <BookOpen size={40} className="text-teal-500" />,
+        tips: [
+          'Choose the right framework for your specific question',
+          'Browse by category or search by name',
+          'AI automatically populates all dimensions'
+        ]
+      },
+      {
+        title: 'How to Use It',
+        description: 'First, select a framework from the library. Then enter your case or situation in the input field. Claude will analyze your case through the selected framework\'s specific dimensions and provide actionable insights.',
+        icon: <Zap size={40} className="text-teal-500" />,
+        tips: [
+          'Be specific about your situation for better analysis',
+          'Try multiple frameworks on the same case for triangulation',
+          'Use the recommendation section for strategic guidance'
         ]
       }
     ]

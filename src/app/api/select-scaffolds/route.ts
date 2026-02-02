@@ -40,8 +40,8 @@ async function selectOptimalScaffolds(topic: string, analysisType: string) {
   ]
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2000,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 4000,
     messages: [{
       role: 'user',
       content: `You are an expert analytical framework selector specializing in optimal prompt scaffold selection for strategic analysis.

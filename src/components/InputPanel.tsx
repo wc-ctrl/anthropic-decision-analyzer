@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Send, Loader2, Sparkles } from 'lucide-react'
 
 interface InputPanelProps {
-  mode: 'decision' | 'forecast' | 'scenario' | 'strategy'
+  mode: 'decision' | 'forecast' | 'scenario' | 'strategy' | 'framework'
   onSubmit: (input: string) => void
   isGenerating: boolean
 }
@@ -25,14 +25,16 @@ export function InputPanel({ mode, onSubmit, isGenerating }: InputPanelProps) {
     decision: 'What decision are you considering? (e.g., "Launch product in Q2" or multiple: "Option A, Option B")',
     forecast: 'What outcome do you want to trace back? (e.g., "AI regulation passes in 2025")',
     scenario: 'What future state are you exploring? (e.g., "Competitor launches rival product")',
-    strategy: 'What strategic goal are you pursuing? (e.g., "Become market leader in 3 years")'
+    strategy: 'What strategic goal are you pursuing? (e.g., "Become market leader in 3 years")',
+    framework: 'Describe the case or situation to analyze (e.g., "Should we build our own auth system or use Auth0?")',
   }
 
   const buttonLabels: Record<string, string> = {
     decision: 'Analyze Consequences',
     forecast: 'Trace Causes',
     scenario: 'Explore Scenario',
-    strategy: 'Build Strategy'
+    strategy: 'Build Strategy',
+    framework: 'Apply Framework',
   }
 
   return (
@@ -97,7 +99,10 @@ export function InputPanel({ mode, onSubmit, isGenerating }: InputPanelProps) {
 
       {/* Subtle hint below */}
       <p className="mt-2 text-xs text-center" style={{ color: 'var(--text-muted)' }}>
-        Tip: Separate multiple items with commas to analyze them together
+        {mode === 'framework'
+          ? 'Claude will apply the selected framework to your case'
+          : 'Tip: Separate multiple items with commas to analyze them together'
+        }
       </p>
     </form>
   )

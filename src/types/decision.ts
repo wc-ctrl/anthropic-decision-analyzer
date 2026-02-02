@@ -26,7 +26,7 @@ export interface DecisionEdge {
 }
 
 export interface AnalysisMode {
-  type: 'decision' | 'forecast' | 'scenario' | 'strategy'
+  type: 'decision' | 'forecast' | 'scenario' | 'strategy' | 'framework'
   rootInput: string
 }
 

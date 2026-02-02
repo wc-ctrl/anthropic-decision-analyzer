@@ -9,7 +9,7 @@ const anthropic = new Anthropic({
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { type, input, contextualData } = body
+    const { type, input, contextualData, webContext } = body
 
     if (!process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY) {
       return NextResponse.json(
@@ -20,12 +20,12 @@ export async function POST(request: NextRequest) {
 
     let analysis
     if (type === 'decision') {
-      analysis = await generateDecisionSteelman(input, contextualData)
+      analysis = await generateDecisionSteelman(input, contextualData, webContext)
     } else if (type === 'forecast') {
-      analysis = await generateForecastSteelman(input, contextualData)
+      analysis = await generateForecastSteelman(input, contextualData, webContext)
     } else {
       // Default to decision steelman for other types
-      analysis = await generateDecisionSteelman(input, contextualData)
+      analysis = await generateDecisionSteelman(input, contextualData, webContext)
     }
 
     return NextResponse.json(analysis)
@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function generateDecisionSteelman(decision: string, contextualData?: any) {
+async function generateDecisionSteelman(decision: string, contextualData?: any, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are a senior strategic advisor known for building the strongest possible case FOR a decision. Your role is to provide compelling, evidence-based arguments supporting this decision, using empirical data, facts, and probabilistic reasoning.
@@ -52,6 +52,13 @@ ${contextualData ? `
 ORGANIZATIONAL CONTEXT:
 Slack Conversations: ${contextualData.slack ? contextualData.slack.map((msg: any) => `${msg.content}`).join('; ') : 'None'}
 Google Drive Documents: ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `${doc.excerpt}`).join('; ') : 'None'}
+` : ''}
+
+${webContext?.contextualIntelligence ? `
+REAL-TIME WEB INTELLIGENCE:
+${webContext.contextualIntelligence.substring(0, 1200)}
+
+Use this real-time information to strengthen your supporting arguments with current evidence.
 ` : ''}
 
 Generate a comprehensive steelman analysis that includes:
@@ -113,10 +120,10 @@ Be thorough, evidence-based, and convincing. Build the strongest possible case w
   }
 }
 
-async function generateForecastSteelman(forecast: string, contextualData?: any) {
+async function generateForecastSteelman(forecast: string, contextualData?: any, webContext?: any) {
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are an expert strategic analyst specializing in outcome enablement and success pathway analysis. Your task is to identify the most likely causal chains that would CAUSE this outcome to happen successfully.
@@ -127,6 +134,13 @@ ${contextualData ? `
 ORGANIZATIONAL CONTEXT:
 Slack Conversations: ${contextualData.slack ? contextualData.slack.map((msg: any) => `${msg.content}`).join('; ') : 'None'}
 Google Drive Documents: ${contextualData.gdrive ? contextualData.gdrive.map((doc: any) => `${doc.excerpt}`).join('; ') : 'None'}
+` : ''}
+
+${webContext?.contextualIntelligence ? `
+REAL-TIME WEB INTELLIGENCE:
+${webContext.contextualIntelligence.substring(0, 1200)}
+
+Use this real-time information to identify success pathways grounded in current evidence.
 ` : ''}
 
 Generate a comprehensive analysis of success pathways:

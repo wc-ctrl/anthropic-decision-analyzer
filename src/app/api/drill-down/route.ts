@@ -48,8 +48,8 @@ async function generateFocusedSubAnalysis(
   const nodeCount = isExpertMode ? { first: 5, second: 2 } : { first: 3, second: 1 }
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2500,
+    model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+    max_tokens: 5000,
     messages: [{
       role: 'user',
       content: `You are an expert strategic analyst specializing in focused deep-dive analysis.

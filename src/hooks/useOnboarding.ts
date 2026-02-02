@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 
-type ModeType = 'decision' | 'forecast' | 'scenario' | 'strategy'
+type ModeType = 'decision' | 'forecast' | 'scenario' | 'strategy' | 'framework'
 
 interface OnboardingState {
   seenModes: Set<ModeType>

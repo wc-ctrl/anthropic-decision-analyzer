@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     }
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 4000,
+      model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+      max_tokens: 8000,
       messages: [{
         role: 'user',
         content: `You are an expert at scenario analysis, game theory, and behavioral modeling. Your task is to create REALISTIC actors who behave like actual humans and organizations - with all their biases, self-interest, paranoia, and conflicting incentives.

@@ -31,6 +31,9 @@ import { GetWeirdButton } from './GetWeirdButton'
 import { WeirdAnalysisModal } from './WeirdAnalysisModal'
 import { DrillDownModal } from './DrillDownModal'
 import { StrategyDisplayPanel } from './StrategyDisplayPanel'
+import { FrameworkPicker } from './FrameworkPicker'
+import { FrameworkDisplayPanel } from './FrameworkDisplayPanel'
+import { FrameworkDefinition, PopulatedFramework } from '@/types/framework'
 import { DataSourceBrowser } from './DataSourceBrowser'
 import { OnboardingModal } from './OnboardingModal'
 import { GoalClarifierButton } from './GoalClarifierButton'
@@ -38,6 +41,7 @@ import { GoalClarifierModal } from './GoalClarifierModal'
 import { SimulationButton } from './simulation/SimulationButton'
 import { SimulationModal } from './simulation/SimulationModal'
 import { AnalysisToolbar } from './AnalysisToolbar'
+import { WebSourcesPanel } from './WebSourcesPanel'
 import { useAutoLayout } from '@/hooks/useAutoLayout'
 import { useOnboarding } from '@/hooks/useOnboarding'
 import { useScreenshot } from '@/hooks/useScreenshot'
@@ -116,10 +120,23 @@ export default function DecisionAnalyzer() {
     loading: false
   })
   const [dataSourceBrowserOpen, setDataSourceBrowserOpen] = useState(false)
-  const [onboardingMode, setOnboardingMode] = useState<'decision' | 'forecast' | 'scenario' | 'strategy' | null>(null)
+  const [onboardingMode, setOnboardingMode] = useState<'decision' | 'forecast' | 'scenario' | 'strategy' | 'framework' | null>(null)
+  const [selectedFramework, setSelectedFramework] = useState<FrameworkDefinition | null>(null)
+  const [frameworkData, setFrameworkData] = useState<{
+    data: PopulatedFramework | null
+    loading: boolean
+  }>({
+    data: null,
+    loading: false
+  })
+  const [webSearchResults, setWebSearchResults] = useState<{
+    searchResults: Array<{ title: string; url: string; snippet: string; source: string }>
+    queryCount?: number
+    lastUpdated?: string
+  }>({ searchResults: [] })
   const { recalculateLayout } = useAutoLayout()
   const { captureReactFlow, captureScenarioPanel } = useScreenshot()
-  const { logQuery, logFeatureUse } = useAnalytics()
+  const { logQuery, logFeatureUse, logModeSwitch, logFrameworkSelect, logExport, logShare } = useAnalytics()
   const { shouldShowOnboarding, markModeSeen, skipAllOnboarding, isInitialized } = useOnboarding()
 
   // Goal Clarifier
@@ -184,17 +201,102 @@ export default function DecisionAnalyzer() {
     setEdges((eds) => addEdge(edge, eds) as DecisionEdge[])
   }, [setEdges])
 
-  const handleModeChange = (newMode: 'decision' | 'forecast' | 'scenario' | 'strategy') => {
+  const handleModeChange = (newMode: 'decision' | 'forecast' | 'scenario' | 'strategy' | 'framework') => {
+    logModeSwitch(mode.type, newMode)
     setMode({ type: newMode, rootInput: '' })
     setNodes([])
     setEdges([])
     setCommentary([])
     setScenarioData({ data: null, loading: false })
     setStrategyData({ data: null, loading: false })
+    setSelectedFramework(null)
+    setFrameworkData({ data: null, loading: false })
+    setWebSearchResults({ searchResults: [] })
 
     // Show onboarding if first time seeing this mode in session
-    if (shouldShowOnboarding(newMode)) {
+    if (newMode !== 'framework' && shouldShowOnboarding(newMode)) {
       setOnboardingMode(newMode)
+    }
+  }
+
+  const handleFrameworkSelect = (framework: FrameworkDefinition) => {
+    logFrameworkSelect(framework.id, framework.name)
+    setSelectedFramework(framework)
+  }
+
+  const generateFrameworkAnalysis = async (input: string, framework: FrameworkDefinition) => {
+    setFrameworkData({ data: null, loading: true })
+
+    try {
+      // Get web context
+      let webContext = null
+      try {
+        const webResponse = await fetch('/api/web-enhanced-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input,
+            analysisType: 'framework',
+            isNonUSFocused: false
+          })
+        })
+        if (webResponse.ok) {
+          webContext = await webResponse.json()
+          if (webContext?.searchResults) {
+            setWebSearchResults({
+              searchResults: webContext.searchResults,
+              queryCount: webContext.queryCount,
+              lastUpdated: webContext.lastUpdated,
+            })
+          }
+        }
+      } catch (error) {
+        console.log('Web context failed for framework:', error)
+      }
+
+      const response = await fetch('/api/framework', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          frameworkId: framework.id,
+          frameworkName: framework.name,
+          fields: framework.fields.map(f => ({ id: f.id, label: f.label })),
+          input,
+          webContext
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to populate framework')
+      }
+
+      const result = await response.json()
+      setFrameworkData({ data: result, loading: false })
+
+      // Generate commentary
+      const frameworkCommentary: Commentary = {
+        id: `framework-${Date.now()}`,
+        content: `**FRAMEWORK ANALYSIS COMPLETE:** ${framework.name}
+
+**Case:** ${input}
+
+**Dimensions Analyzed:** ${framework.fields.length} fields populated with strategic analysis.
+
+${result.recommendation ? `**Recommendation:** ${result.recommendation.substring(0, 200)}...` : ''}
+
+**Next Steps:**
+• Review each dimension for actionable insights
+• Cross-reference findings across fields
+• Consider applying additional frameworks for triangulation`,
+        timestamp: new Date(),
+        triggeredBy: 'initialAnalysis',
+        relatedNodes: []
+      }
+      setCommentary([frameworkCommentary])
+
+    } catch (error) {
+      console.error('Error generating framework analysis:', error)
+      setFrameworkData({ data: null, loading: false })
     }
   }
 
@@ -335,9 +437,9 @@ export default function DecisionAnalyzer() {
     }
   }
 
-  const handleDataSourcesUpdated = (documentsAvailable: boolean) => {
+  const handleDataSourcesUpdated = useCallback((documentsAvailable: boolean) => {
     setHasDocuments(documentsAvailable)
-  }
+  }, [])
 
   const handleImportContent = (content: string, source: string) => {
     // Add the imported content as a commentary entry with visual distinction
@@ -356,6 +458,7 @@ export default function DecisionAnalyzer() {
 
   const handleExportPowerPoint = async () => {
     if (nodes.length === 0) return
+    logExport('powerpoint')
 
     try {
       const rootInputs = getAllRootInputs()
@@ -393,6 +496,7 @@ export default function DecisionAnalyzer() {
 
   const handleExportWord = async () => {
     if (nodes.length === 0) return
+    logExport('word')
 
     try {
       // Gather analysis summary from commentary
@@ -477,6 +581,32 @@ export default function DecisionAnalyzer() {
         }
       }
 
+      // Get web context
+      let webContext = null
+      try {
+        const webResponse = await fetch('/api/web-enhanced-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: mode.rootInput,
+            analysisType: mode.type,
+            isNonUSFocused: false
+          })
+        })
+        if (webResponse.ok) {
+          webContext = await webResponse.json()
+          if (webContext?.searchResults) {
+            setWebSearchResults({
+              searchResults: webContext.searchResults,
+              queryCount: webContext.queryCount,
+              lastUpdated: webContext.lastUpdated,
+            })
+          }
+        }
+      } catch (error) {
+        console.log('Web context failed for devil\'s advocate:', error)
+      }
+
       // Generate devil's advocate analysis
       const response = await fetch('/api/devils-advocate', {
         method: 'POST',
@@ -486,7 +616,8 @@ export default function DecisionAnalyzer() {
         body: JSON.stringify({
           type: mode.type,
           input: mode.rootInput,
-          contextualData
+          contextualData,
+          webContext
         })
       })
 
@@ -560,6 +691,32 @@ export default function DecisionAnalyzer() {
         }
       }
 
+      // Get web context
+      let webContext = null
+      try {
+        const webResponse = await fetch('/api/web-enhanced-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: mode.rootInput,
+            analysisType: mode.type,
+            isNonUSFocused: false
+          })
+        })
+        if (webResponse.ok) {
+          webContext = await webResponse.json()
+          if (webContext?.searchResults) {
+            setWebSearchResults({
+              searchResults: webContext.searchResults,
+              queryCount: webContext.queryCount,
+              lastUpdated: webContext.lastUpdated,
+            })
+          }
+        }
+      } catch (error) {
+        console.log('Web context failed for steelman:', error)
+      }
+
       // Call steelman API endpoint
       const response = await fetch('/api/steelman', {
         method: 'POST',
@@ -567,7 +724,8 @@ export default function DecisionAnalyzer() {
         body: JSON.stringify({
           type: mode.type,
           input: mode.rootInput,
-          contextualData
+          contextualData,
+          webContext
         })
       })
 
@@ -624,7 +782,8 @@ export default function DecisionAnalyzer() {
       const rootInputs = getAllRootInputs()
 
       // Extract actors from the current analysis
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+      if (!backendUrl) throw new Error('Backend URL not configured')
       const response = await fetch(`${backendUrl}/api/wargaming/extract-actors`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -700,6 +859,32 @@ export default function DecisionAnalyzer() {
         }
       }
 
+      // Get web context
+      let webContext = null
+      try {
+        const webResponse = await fetch('/api/web-enhanced-search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: mode.rootInput,
+            analysisType: 'scenario',
+            isNonUSFocused: false
+          })
+        })
+        if (webResponse.ok) {
+          webContext = await webResponse.json()
+          if (webContext?.searchResults) {
+            setWebSearchResults({
+              searchResults: webContext.searchResults,
+              queryCount: webContext.queryCount,
+              lastUpdated: webContext.lastUpdated,
+            })
+          }
+        }
+      } catch (error) {
+        console.log('Web context failed for scenario analysis:', error)
+      }
+
       // Generate scenario analysis
       const response = await fetch('/api/scenario', {
         method: 'POST',
@@ -708,7 +893,8 @@ export default function DecisionAnalyzer() {
         },
         body: JSON.stringify({
           input: mode.rootInput,
-          contextualData
+          contextualData,
+          webContext
         })
       })
 
@@ -747,6 +933,7 @@ export default function DecisionAnalyzer() {
   }
 
   const handleShareAnalysis = async () => {
+    logShare('slack')
     // Share works with or without documents
     setIsSharing(true)
 
@@ -992,6 +1179,13 @@ ${insights.keyFindings ? insights.keyFindings.map((finding: string) => `• ${fi
         })
         if (webResponse.ok) {
           webContext = await webResponse.json()
+          if (webContext?.searchResults) {
+            setWebSearchResults({
+              searchResults: webContext.searchResults,
+              queryCount: webContext.queryCount,
+              lastUpdated: webContext.lastUpdated,
+            })
+          }
         }
       } catch (error) {
         console.log('Web context failed for weird analysis:', error)
@@ -1115,6 +1309,13 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
         })
         if (webResponse.ok) {
           webContext = await webResponse.json()
+          if (webContext?.searchResults) {
+            setWebSearchResults({
+              searchResults: webContext.searchResults,
+              queryCount: webContext.queryCount,
+              lastUpdated: webContext.lastUpdated,
+            })
+          }
         }
       } catch (error) {
         console.log('Web context failed for strategy:', error)
@@ -1324,7 +1525,7 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
 
       setEdges([])
 
-      // For scenario and strategy modes, we don't generate node trees
+      // For scenario, strategy, and framework modes, we don't generate node trees
       if (mode.type === 'scenario') {
         setIsGenerating(false)
         return // Scenario analysis uses the display system, not node trees
@@ -1337,9 +1538,15 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
         return
       }
 
-      // Generate consequences/pathways and initial commentary in parallel for speed
-      const analysisPromise = mode.type === 'decision'
-        ? generateConsequences(
+      if (mode.type === 'framework' && selectedFramework) {
+        await generateFrameworkAnalysis(input, selectedFramework)
+        setIsGenerating(false)
+        return
+      }
+
+      // Generate consequences/pathways
+      const analysis = mode.type === 'decision'
+        ? await generateConsequences(
             input,
             hasDocuments,
             isExpertMode,
@@ -1347,7 +1554,7 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
             expertSettings.secondOrderCount,
             slackContext
           )
-        : generateCausalPathways(
+        : await generateCausalPathways(
             input,
             hasDocuments,
             isExpertMode,
@@ -1355,26 +1562,22 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
             expertSettings.secondOrderCount,
             slackContext
           )
-
-      // Start commentary generation in parallel (will use input text before tree is ready)
-      const commentaryPromise = generateCommentary(
-        mode.type,
-        input,
-        [],
-        [],
-        `Initial ${mode.type} analysis`
-      )
-
-      // Wait for both to complete in parallel
-      const [analysis, initialCommentary] = await Promise.all([
-        analysisPromise,
-        commentaryPromise
-      ])
 
       // Update nodes and edges with generated analysis
       setNodes(analysis.nodes)
       setEdges(analysis.edges)
-      setCommentary([initialCommentary])
+
+      // Generate initial commentary with the completed analysis
+      try {
+        const initialCommentary = await generateCommentary(
+          analysis,
+          'initialAnalysis',
+          analysis.nodes.map(n => n.id)
+        )
+        setCommentary([initialCommentary])
+      } catch {
+        // Commentary is non-critical; analysis still works without it
+      }
 
       // Auto-fit the view after analysis is complete
       setTimeout(() => {
@@ -1627,10 +1830,18 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
           {/* Top Row: Brand + Utilities */}
           <div className="flex justify-between items-center mb-5">
             <div className="flex items-center gap-4">
-              <h1 className="font-display text-2xl font-medium tracking-tight" style={{ color: 'var(--text-primary)' }}>
+              <h1 className="font-display text-2xl font-medium tracking-tight flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                <svg width="26" height="26" viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg">
+                  <g fill="var(--accent-gold, #d4a64a)" stroke="var(--accent-gold, #d4a64a)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M 22 10 C 32.5 11 38.5 18 38 39 L 15 39 C 15 30 25 32.5 23 18" style={{fill: 'var(--accent-gold, #d4a64a)'}} />
+                    <path d="M 24 18 C 24.38 20.91 18.45 25.37 16 27 C 13 29 13.18 31.34 11 31 C 9.958 30.06 12.41 27.96 11 28 C 10 28 11.19 29.23 10 30 C 9 30 5.997 31 6 26 C 6 24 12 14 12 14 C 12 14 13.89 12.1 14 10.5 C 13.27 9.506 13.5 8.5 13.5 7.5 C 14.5 6.5 16.5 10 16.5 10 L 18.5 10 C 18.5 10 19.28 8.008 21 7 C 22 7 22 10 22 10" style={{fill: 'var(--accent-gold, #d4a64a)'}} />
+                    <circle cx="12" cy="13.5" r="1" fill="var(--bg-primary, #1a1a2e)" />
+                    <rect x="10" y="39" width="28" height="3" rx="1" />
+                  </g>
+                </svg>
                 Claudeswitz
               </h1>
-              <span className="cw-badge cw-badge-gold">v1.3</span>
+              <span className="cw-badge cw-badge-gold">v1.4</span>
             </div>
             <div className="flex items-center gap-3">
               <McpIntegrationPanel
@@ -1704,8 +1915,27 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
             </button>
           </div>
 
+          {/* Selected Framework Indicator */}
+          {mode.type === 'framework' && selectedFramework && (
+            <div className="mt-3 flex items-center gap-2">
+              <span
+                className="text-xs px-2 py-1 rounded"
+                style={{ background: 'var(--bg-elevated)', color: 'var(--accent-gold)', fontFamily: 'var(--font-display)' }}
+              >
+                {selectedFramework.name}
+              </span>
+              <button
+                onClick={() => { setSelectedFramework(null); setFrameworkData({ data: null, loading: false }) }}
+                className="text-xs hover:underline"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Change framework
+              </button>
+            </div>
+          )}
+
           {/* Input Row - Full Width */}
-          <div className="mt-4">
+          <div className={`mt-4 ${mode.type === 'framework' && !selectedFramework ? 'hidden' : ''}`}>
             <div className="flex items-center gap-2">
               <div className="flex-1">
                 <InputPanel
@@ -1734,7 +1964,7 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
           </div>
 
           {/* Context Actions (when analysis is active) */}
-          {(nodes.length > 0 || (mode.type === 'scenario' && scenarioData.data) || (mode.type === 'strategy' && strategyData.data)) && (
+          {(nodes.length > 0 || (mode.type === 'scenario' && scenarioData.data) || (mode.type === 'strategy' && strategyData.data) || (mode.type === 'framework' && frameworkData.data)) && (
             <AnalysisToolbar
               mode={mode}
               hasAnalysis={nodes.length > 0}
@@ -1786,6 +2016,16 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
               data={strategyData.data}
               loading={strategyData.loading}
             />
+          ) : mode.type === 'framework' ? (
+            !selectedFramework ? (
+              <FrameworkPicker onSelect={handleFrameworkSelect} />
+            ) : (
+              <FrameworkDisplayPanel
+                data={frameworkData.data}
+                framework={selectedFramework}
+                loading={frameworkData.loading}
+              />
+            )
           ) : (
             <div className="relative h-full">
               <ReactFlow
@@ -1847,6 +2087,15 @@ ${weirdNodes.map(w => `• ${w.data.label} (${w.data.probability}% probability)`
               Real-time analysis as you explore
             </p>
           </div>
+          {webSearchResults.searchResults.length > 0 && (
+            <div className="px-4 pt-3">
+              <WebSourcesPanel
+                searchResults={webSearchResults.searchResults}
+                queryCount={webSearchResults.queryCount}
+                lastUpdated={webSearchResults.lastUpdated}
+              />
+            </div>
+          )}
           <CommentaryPanel
             commentary={commentary}
             mode={mode}

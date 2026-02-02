@@ -50,12 +50,19 @@ export function DataSourceBrowser({
   }, [isOpen, activeTab])
 
   const loadDocuments = async () => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) {
+      setIsLoadingDocs(false)
+      return
+    }
     setIsLoadingDocs(true)
     setError(null)
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
-      const response = await fetch(`${backendUrl}/api/documents`)
-      if (response.ok) {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 5000)
+      const response = await fetch(`${backendUrl}/api/documents`, { signal: controller.signal })
+      clearTimeout(timeout)
+      if (response.ok && response.headers.get('content-type')?.includes('json')) {
         const data = await response.json()
         setDocuments(data.documents || [])
       }
@@ -68,10 +75,11 @@ export function DataSourceBrowser({
   }
 
   const handleDocClick = async (doc: Document) => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) return
     setSelectedDoc(doc)
     setIsLoadingContent(true)
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
       const response = await fetch(`${backendUrl}/api/documents/${doc.id}`)
       if (response.ok) {
         const data = await response.json()
@@ -87,8 +95,9 @@ export function DataSourceBrowser({
 
   const handleDeleteDoc = async (docId: string, e: React.MouseEvent) => {
     e.stopPropagation()
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) return
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
       const response = await fetch(`${backendUrl}/api/documents/${docId}`, { method: 'DELETE' })
       if (response.ok) {
         if (selectedDoc?.id === docId) {

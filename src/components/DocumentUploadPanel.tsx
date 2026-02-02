@@ -34,10 +34,14 @@ export function DocumentUploadPanel({ isOpen, onClose, onDocumentsChange }: Docu
   const [dragOver, setDragOver] = useState(false)
 
   const fetchDocuments = useCallback(async () => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) return
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
-      const response = await fetch(`${backendUrl}/api/documents`)
-      if (response.ok) {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 5000)
+      const response = await fetch(`${backendUrl}/api/documents`, { signal: controller.signal })
+      clearTimeout(timeout)
+      if (response.ok && response.headers.get('content-type')?.includes('json')) {
         const data = await response.json()
         setDocuments(data.documents || [])
         onDocumentsChange(data.documents?.length || 0)
@@ -71,7 +75,12 @@ export function DocumentUploadPanel({ isOpen, onClose, onDocumentsChange }: Docu
     setError(null)
     setSuccessMessage(null)
 
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) {
+      setError('Backend URL not configured. Document upload is not available.')
+      setUploading(false)
+      return
+    }
     let successCount = 0
     const uploadedNames: string[] = []
 
@@ -111,8 +120,9 @@ export function DocumentUploadPanel({ isOpen, onClose, onDocumentsChange }: Docu
   }
 
   const handleDelete = async (docId: string) => {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
+    if (!backendUrl) return
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || ''
       const response = await fetch(`${backendUrl}/api/documents/${docId}`, {
         method: 'DELETE',
       })

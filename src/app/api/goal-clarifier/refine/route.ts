@@ -21,8 +21,8 @@ export async function POST(request: NextRequest) {
     const context = buildGoalContext(goal)
 
     const message = await anthropic.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 2500,
+      model: process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101',
+      max_tokens: 5000,
       messages: [{
         role: 'user',
         content: `You are an expert goal-setting coach. Based on the information gathered, synthesize a refined, actionable goal statement.
